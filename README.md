@@ -33,14 +33,22 @@ It has some great visuals as well as some code you can look at.
 _________________________________________________________________________
 
 **SETUP:**
+
 Solder header pins onto left and right side of the Spectrum Shield so that it can stack onto the Arduino's original header pins.
 If you don't have header pins and need to connect them a different way (Like I had to at first), the important pins are -
+
     Arduino --->         Spectrum Shield
+    
     Analog in A0  --->      Analog in A0
+    
     Analog in A1   --->     Analog in A1
+    
     Digital PWM 4   --->    Right side pin 4
+    
     Digital PWM 5  -- ->    Right side pin 5
+    
     5V        --->          5V
+    
     GND        --->         GND
 
 Now the LEDs have 5 total wires. The 3 wires that are together are red(power) green(data line) and black(ground).
@@ -71,6 +79,7 @@ Boom! all of the basic stuff is set up! If you want to add extra features, you g
 
 
 **NOTES FOR CONNECTING MORE THAN ONE STRIP:**
+
 So the strips I am using have 300 LEDs each strip. If you are connecting more than one than you definitly need an extra power supply. But to connect more than one you just need to set the first strip up like described above. There is connectors on each end of the leds that attach together, and again, it has three wires. What I did was actually cut the power and ground wire on the connector for the second LED strip. I did this so only the data line would pass to the second strip. I then powered the second strip with the power supply like I describe above. The reason I cut the power and ground wires was to separate the light strips into different circuits. I am not the best at circuits honestly haha and I didn't want to overload the lights. By cutting those wires, I know that each strip has 5 volts / 10 amps and that is what I wanted.
 Some things to note with having more than one strip. The main thing is if you are using the lights I am using, you won't be able to light all of the LEDs if you are treating them as one long strip(I found this out the hard way). The arduino only has so much memory allocated for Global variables. In the code you are basically making your LEDs an array and you need it to be global. So long story short, the arduino doesn't have enough memory for 600 LEDs. I found that I could get around 550 LEDs working before they stopped working properly and I could get around 590 before the arduino wouldn't upload the code. Its ok though becasue one thing you can do is actually send that same Digital pin 6 to both LEDs. If you do this then you actually don't want to connect them together and just have them be completly seperate. 
 Lastly, the more LEDs you have the slower they will be if you are making them move down the strip
