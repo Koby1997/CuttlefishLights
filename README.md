@@ -127,12 +127,19 @@ ________________________________________________________________________________
 
 
 **LIST OF ADDITIONS:**
+
 Variable brightness like the variable speed
+
 Add a way to switch between different programs (I don't know what other word to use. Different way to light up the lights). I'll probably do some hardware first and then add it to the UI.
+
 Way more colors, this was hacky code just to get it started. I want Smooth transition between colors.
+
 variable sensitivity, find a way to make the volume not change the sensitivity. Do modulus?
+
 Josiah's idea: two ideas together, normal color flow, now add the bass hit switch. maybe change the default yellow in OG
+
 Bass slows down. mess with speed
+
 Gator stuff
 
 Make UI for whole project
