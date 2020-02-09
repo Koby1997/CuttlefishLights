@@ -1,11 +1,11 @@
 #include <FastLED.h>
-#define NUM_LEDS 300
+#define NUM_LEDS 300 //How many LEDs are on your strip
 #define DATA_PIN 6
 #define LED_TYPE WS2812B
-#define BRIGHTNESS 60
+#define BRIGHTNESS 60 // Just the default for now, going to create a setting to make it variable
 
 CRGB leds[NUM_LEDS];
-CRGB bassColor = new CRGB(0,0,0);
+CRGB bassColor = new CRGB(0,0,0); //used for some behaviors that use random colors
 
 // AUDIO INPUT SETUP
 int strobe = 4;
@@ -37,7 +37,7 @@ void setup()
   }
   FastLED.show();
 
-  // SERIAL AND INPUT SETUP
+  // Serial and input setup
   Serial.begin(115200);
   Serial.println("\nListening...");
 }

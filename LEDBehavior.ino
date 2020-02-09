@@ -23,6 +23,7 @@ void OG(int start)
     leds[start] = CRGB(75,125,0);//yellowish
 }
 
+
 /*
  * Each band is connected to a color, the band with the highest
  * amplitude will get output to the lights.
@@ -78,6 +79,7 @@ void allWhite()
   }
 }
 
+
 void switchOnBeat()//whole strip one color, changes to random color when bass hits
 {
   readSpectrum();
@@ -104,6 +106,7 @@ void switchOnBeat()//whole strip one color, changes to random color when bass hi
   delay(30);//So it doesn't just flash during periods where bass is up
 }
 
+
 /*
  * For this idea, the first light is lit, then the second, then third etc.
  * Once it gets to the end it restarts over the old lights
@@ -125,9 +128,6 @@ void snake()//needs work
 
 void forJosiah(int start)
 {
-
-
-
 readSpectrum();
 
   int tracker = 0;
@@ -173,26 +173,4 @@ readSpectrum();
       delay(15);
     break;
   }
-
-
-
-
-
-
-
-
-  // if(band[0] + band[1] > 600)
-  // {
-  //   CRGB oldColor = bassColor;
-  //   bassColor = CRGB(random(255),random(255),random(255));
-  //   for (int i = 0; i < NUM_LEDS; i++)
-  //   {
-  //     if(leds[i] == oldColor)
-  //     {
-  //       leds[i] = bassColor;
-  //     }
-  //   }
-  // }
-  // moveLightsFTB(leds, NUM_LEDS);
-  // sevenColors(0);
 }

@@ -37,7 +37,6 @@ void readSpectrum()
 }
 
 
-
 void moveLightsFTB(CRGB leds[], int arrayLength) //Front To Back
 {
     for (int i = arrayLength - 1; i > 0; i--)
