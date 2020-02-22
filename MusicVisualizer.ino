@@ -49,34 +49,33 @@ void setup()
 
 void loop()
 {
-    //OG(true);
+  //allWhite();
 
-    //sevenColors(false);
+  //bassSpeed();
 
-    Smooth(true);
-    //delay(5);
+  //bassStartsNewColor(true);
 
-    //split(true, 5);
+  //forJosiah(true);
 
-    //bassSpeed();
+  //goGators();
 
-    //allWhite();
-    
-    //switchOnBeat();
-    
-    //snake();
+  //OG(true);
 
-    //sevenBounce();
-    //delay(25);
+  //rainbow(true,10);
 
-    //forJosiah(true);
+  randomTransition();
 
-    //myRainbow(true,10);
+  //sevenBounce();
+  //delay(25);
+  
+  //sevenColors(false);
 
-    //randomTransition();
+  //smooth(true);
+  //delay(5);
 
-    //FastLED.show();
-    //delay(getDelay());
+  //snake();
 
-    //bassStartsNewColor(true);
+  //split(true, 5);
+
+  //switchOnBeat();    
 }

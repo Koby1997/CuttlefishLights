@@ -1,4 +1,155 @@
 /*
+ * So this is like an LED graphic. The higher the band, the more lights get lit.
+ * If you need less lights lit, it tries to slow that down by turning off one
+ * light at a time. Can use a delay in the main loop to slow it down more.
+ * The delay helps it flow more smoothly, not fast and frantic.
+ */
+void bounce(int start, int end, int lastToLight, int pick)
+{
+    int alreadyLit = 0;
+    for(int i = start; i < end; i++)
+    {
+        if(leds[i] != CRGB(0,0,0))
+            alreadyLit = i;      
+        leds[i] != CRGB(0,0,0) ? alreadyLit = i : NULL;
+    }
+
+    lastToLight < alreadyLit ? lastToLight = (alreadyLit - 1) : NULL;
+
+    for(int i = start; i < lastToLight; i++)
+    {
+        leds[i] = lightSwitch(pick);
+    }
+
+    for(int i = lastToLight; i < end + 1; i++)
+    {
+        leds[i] = CRGB(0,0,0);
+    }
+}
+
+
+/*
+ * This uses a potentiometer to change the time it takes to add a new light.
+ * The middle pin of the potentiometer is connected to A2, which is lightDelay.
+ * Hooked the potentiometer to the arduino 5V. My readings went from 0 - 1000. 
+ * The Delay() function is read in ms so keep that in mind.
+ */
+int getDelay()
+{
+    int newDelay;
+    int x = analogRead(lightDelay);
+
+    if (x < 50)
+        newDelay = 0;
+    else
+        newDelay = x/10;
+
+    return newDelay;
+}
+
+
+/*
+ * finds which band is the highest
+ */
+int highestBand()
+{
+    int highest = 0;
+    for(int i = 1; i < 7; i++)
+    {
+        if(band[i] > band[highest])
+        highest = i;
+    }
+    return highest;
+}
+
+
+/*
+ * Just sees if the band given is higher than the sensitivity
+ */
+bool isHit(int b)
+{//for some reason a ternary wasn't working here?
+    if(band[b] > sensitivity)
+        return true;
+    else
+        return false;
+}
+
+
+/*
+ * Simple switch-case statement to pic different colors for different behaviors
+ */
+CRGB lightSwitch(int pick)//name for the lols
+{
+    switch (pick)
+    {
+        case 0:
+            return CRGB(255, 0, 0);//Red
+        break;
+        case 1:
+            return CRGB(255, 127, 0);//Orange
+        break;
+        case 2:
+            return CRGB(255, 255, 0);//Yellow
+        break;
+        case 3:
+            return CRGB(0, 255, 0);//Green
+        break;
+        case 4:
+            return CRGB(0, 0, 255);//Blue
+        break;
+        case 5:
+            return CRGB(145, 0, 255);//Purple
+        break;
+        case 6:
+            return CRGB(255, 0, 210);//Pink
+        break;
+        //From now on, sort of like special cases
+
+        case 7: //Josiah's case
+            if(band[0] > sensitivity || band[1] > sensitivity)
+            {
+                CRGB oldColor = bassColor;
+                bassColor = CRGB(random(255),random(255),random(255));
+                for (int i = 0; i < NUM_LEDS; i++)
+                {
+                    if(leds[i] == oldColor)
+                    {
+                        leds[i] = bassColor;
+                    }
+                }
+            }
+            return bassColor;
+            delay(15);
+        break;
+  }
+}
+
+
+/*
+ * This moves the lights either from Front to Back, or Back to Front.
+ */
+void moveLights(bool forward)
+{
+    if(forward == true)
+    {
+        for(int i = NUM_LEDS - 1; i > 0; i--)
+        {
+            leds[i] = leds[i-1];
+        }
+        return;
+    }
+    else
+    {
+        for(int i = 0; i < NUM_LEDS; i++)
+        {
+            leds[i] = leds[i+1];
+        }
+        return;
+    }
+}
+
+
+/*
  * This reads the bands from the Spectrum Shield.
  * Changing the strobe changes what band the Spectrum shield will read from.
  * This is why we do the for loop to read all of the bands.
@@ -106,151 +257,4 @@ void setSensitivity()//sensitivity for first 50 readings will be weird
 
     sensitivity = (numerator / 350) * 2;//higher than average, but not too high. After testing this seems to work.
     //kinda weird at really low volumes, but actually works pretty good.
-}
-
-
-/*
- * This moves the lights either from Front to Back, or Back to Front.
- */
-void moveLights(bool forward)
-{
-    if(forward == true)
-    {
-        for(int i = NUM_LEDS - 1; i > 0; i--)
-        {
-            leds[i] = leds[i-1];
-        }
-        return;
-    }
-    else
-    {
-        for(int i = 0; i < NUM_LEDS; i++)
-        {
-            leds[i] = leds[i+1];
-        }
-        return;
-    }
-}
-
-
-/*
- * Simple switch-case statement to pic different colors for different behaviors
- */
-CRGB lightSwitch(int pick)//name for the lols
-{
-    switch (pick)
-    {
-        case 0:
-            return CRGB(255, 0, 0);//Red
-        break;
-        case 1:
-            return CRGB(255, 127, 0);//Orange
-        break;
-        case 2:
-            return CRGB(255, 255, 0);//Yellow
-        break;
-        case 3:
-            return CRGB(0, 255, 0);//Green
-        break;
-        case 4:
-            return CRGB(0, 0, 255);//Blue
-        break;
-        case 5:
-            return CRGB(145, 0, 255);//Purple
-        break;
-        case 6:
-            return CRGB(255, 0, 210);//Pink
-        break;
-        //From now on, sort of like special cases
-
-        case 7: //Josiah's case
-            if(band[0] > sensitivity || band[1] > sensitivity)
-            {
-                CRGB oldColor = bassColor;
-                bassColor = CRGB(random(255),random(255),random(255));
-                for (int i = 0; i < NUM_LEDS; i++)
-                {
-                    if(leds[i] == oldColor)
-                    {
-                        leds[i] = bassColor;
-                    }
-                }
-            }
-            return bassColor;
-            delay(15);
-        break;
-  }
-}
-
-
-/*
- * So this is like an LED graphic. The higher the band, the more lights get lit.
- * If you need less lights lit, it tries to slow that down by turning off one
- * light at a time. Can use a delay in the main loop to slow it down more.
- * The delay helps it flow more smoothly, not fast and frantic.
- */
-void bounce(int start, int end, int lastToLight, int pick)
-{
-    int alreadyLit = 0;
-    for(int i = start; i < end; i++)
-    {
-        if(leds[i] != CRGB(0,0,0))
-            alreadyLit = i;      
-        leds[i] != CRGB(0,0,0) ? alreadyLit = i : NULL;
-    }
-
-    lastToLight < alreadyLit ? lastToLight = (alreadyLit - 1) : NULL;
-
-    for(int i = start; i < lastToLight; i++)
-    {
-        leds[i] = lightSwitch(pick);
-    }
-
-    for(int i = lastToLight; i < end + 1; i++)
-    {
-        leds[i] = CRGB(0,0,0);
-    }
-}
-
-
-/*
- * This uses a potentiometer to change the time it takes to add a new light.
- * The middle pin of the potentiometer is connected to A2, which is lightDelay.
- * Hooked the potentiometer to the arduino 5V. My readings went from 0 - 1000. 
- * The Delay() function is read in ms so keep that in mind.
- */
-int getDelay()
-{
-    int newDelay;
-    int x = analogRead(lightDelay);
-
-    if (x < 50)
-        newDelay = 0;
-    else
-        newDelay = x/10;
-
-    return newDelay;
-}
-
-
-//Just sees if the band given is higher than the sensitivity
-bool isHit(int b)
-{//for some reason a ternary wasn't working here?
-    if(band[b] > sensitivity)
-        return true;
-    else
-        return false;
-}
-
-
-//finds which band is the highest
-int highestBand()
-{
-    int highest = 0;
-    for(int i = 1; i < 7; i++)
-    {
-        if(band[i] > band[highest])
-        highest = i;
-    }
-    return highest;
 }
