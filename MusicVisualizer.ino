@@ -61,9 +61,9 @@ void loop()
 
   //OG(true);
 
-  //rainbow(true,10);
+  rainbow(true,10);
 
-  randomTransition();
+  //randomTransition();
 
   //sevenBounce();
   //delay(25);
@@ -73,7 +73,7 @@ void loop()
   //smooth(true);
   //delay(5);
 
-  //snake();
+  //snake(true);
 
   //split(true, 5);
 

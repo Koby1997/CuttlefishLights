@@ -67,6 +67,8 @@ void forJosiah(bool forward)
     leds[start] = lightSwitch(7);
   else
     leds[start] = lightSwitch(tracker);
+
+  FastLED.show();
 }
 
 
@@ -141,6 +143,8 @@ void OG(bool forward)
     leds[start] = CRGB(0,0,250);
   else
     leds[start] = CRGB(75,125,0);//yellowish
+
+  FastLED.show();
 }
 
 
@@ -167,7 +171,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(255, i, 0);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
 
   for(int i = 255; i >= 0; i-=speed)   //2
@@ -175,7 +179,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(i, 255, 0);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
 
   for(int i = 0; i < 256; i+=speed)    //3
@@ -183,7 +187,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(0, 255, i);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
 
   for(int i = 255; i >= 0; i-=speed)   //4
@@ -191,7 +195,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(0, i, 255);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
 
   for(int i = 0; i < 256; i+=speed)    //5
@@ -199,7 +203,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(i, 0, 255);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
 
   for(int i = 255; i >= 0; i-=speed)   //6
@@ -207,7 +211,7 @@ void rainbow(bool forward, int speed)
     moveLights(forward);
     leds[start] = CRGB(255, 0, i);
     FastLED.show();
-    //delay(getDelay());
+    delay(20);
   }
   return;
 }
@@ -368,6 +372,7 @@ void snake(bool forward)//needs work
 {
   for (int i = 0; i < NUM_LEDS; i++)
   {
+    readSpectrum();
     leds[i] = lightSwitch(highestBand());
     FastLED.show();
     delay(20);    
