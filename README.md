@@ -1,10 +1,9 @@
-**Music Visualizer notes:**
+# Music Visualizer notes:
 
-First things first. These started off as my personal notes and how I thought of the project. I might not explain something perfectly, or even right, but
-I will explain it with how I see how it works and hey, thats good enough for me. I hope you find this helpful!
+First things first. These started off as my personal notes and how I thought of the project. I might not explain something perfectly, or even right, but I will explain it with how I see how it works and hey, thats good enough for me. This isn't the best formatted README and is very plain, but I hope you find this helpful!
 ____________________________________________________________________________
 
-**HARDWARE**:
+## HARDWARE:
 
 Hardware required:
 
@@ -26,15 +25,15 @@ Potentiometer : can be use to control qualities such as brightness or speed
 Other buttons or things you think you might need to add functionalities. You can think of this after you read through this or finish the project.
 ___________________________________________________________________________
 
-**QUICK NOTE ABOUT SPECTRUM SHIELD:**
+## QUICK NOTE ABOUT SPECTRUM SHIELD:
 
 So what you need to know about the spectrum shield is that it takes in audio from the aux input and splits up the audio into 7 bands. These 7 bands are related to 7 frequency ranges. So lower bands are like the bass notes and higher bands are like high notes. The bands amplitude is related to how frequent that frequency range is during that specific time. So if there is a ton of bass, the lower band's amplitude will increase. This is what the Arduino is reading, the amplitude from the bands. Using this information, you can do many things with the LEDs. If you want to know more about it and read more detailed explanations to get a better understanding or you just want to message me saying how I am dumb and how I described it wrong,  here is the link you need: https://www.sparkfun.com/products/13116
 It has some great visuals as well as some code you can look at.
 _________________________________________________________________________
 
-**SETUP:**
+## SETUP:
 
-(Make wires as short as possible!)
+**(Make wires as short as possible!)**
 
 Solder header pins onto left and right side of the Spectrum Shield so that it can stack onto the Arduino's original header pins.
 If you don't have header pins and need to connect them a different way (Like I had to at first), the important pins are -
@@ -80,14 +79,14 @@ Note: you might think "Why do I need the splitter? The Spectrum has an output au
 Boom! all of the basic stuff is set up! If you want to add extra features, you gotta figure that out yourself. Most things will be as simple as place a part on a breadboard, power it, ground it, pin it to a new pin in the arduino and add some code. Thats all I did for the delay speed in the code. I just added a potentiometer and read the voltage. The higher the voltage the longer the delay.
 
 
-**NOTES FOR CONNECTING MORE THAN ONE STRIP:**
+### NOTES FOR CONNECTING MORE THAN ONE STRIP:
 
 So the strips I am using have 300 LEDs each strip. If you are connecting more than one than you definitly need an extra power supply. But to connect more than one you just need to set the first strip up like described above. There is connectors on each end of the leds that attach together, and again, it has three wires. What I did was actually cut the power and ground wire on the connector for the second LED strip. I did this so only the data line would pass to the second strip. I then powered the second strip with the power supply like I describe above. The reason I cut the power and ground wires was to separate the light strips into different circuits. I am not the best at circuits honestly haha and I didn't want to overload the lights. By cutting those wires, I know that each strip has 5 volts / 10 amps and that is what I wanted.
 Some things to note with having more than one strip. The main thing is if you are using the lights I am using, you won't be able to light all of the LEDs if you are treating them as one long strip(I found this out the hard way). The arduino only has so much memory allocated for Global variables. In the code you are basically making your LEDs an array and you need it to be global. So long story short, the arduino doesn't have enough memory for 600 LEDs. I found that I could get around 550 LEDs working before they stopped working properly and I could get around 590 before the arduino wouldn't upload the code. Its ok though becasue one thing you can do is actually send that same Digital pin 6 to both LEDs. If you do this then you actually don't want to connect them together and just have them be completly seperate. 
 Lastly, the more LEDs you have the slower they will be if you are making them move down the strip.
 ___________________________________________________________________________________
 
-**IN THE CODE:**
+## IN THE CODE:
 
 So one thing that is very useful is the FastLED library. That makes the LEDs super easy to work with.
 But at the top of the musicVisualizer.ino is a lot of important settings that you can change depending on your set up.
@@ -121,17 +120,18 @@ One thing about the code I feel I should say is that you can change the lights i
 
 ________________________________________________________________________________________
 
-**SENSITIVITY PROBLEM :**
+## SENSITIVITY PROBLEM :
 
 Another important thing to know is that when you change the volume on your computer or phone or whatever is outputting music, this will change the amplitude of the bands that are read from the spectrum. However, if you change the volume on your speaker, it will not change the amplitude of the bands. I wanted to find a way to not have the volume affect the lights but this was the best I could get, so just keep that in mind. This sensitivity issue has an effect on almost every behavior so I am definitely trying to find a way to solve it. After going through some test I found out that the amplitude of the bands and the volume of the music is not connected linearly. Also, the lower bass bands do not get amplified as much as the higher bands when the music is turned up. It is close to linear though, so I think that will help find a solution.
 
 Important: Throughout testing this, I have played music from my computer. After some test, the sensitivity issue also affects music coming from a phone. The phone output is not as high as the computers. Hopefully after fixing the sensitivity issue, this will not matter.
 
-Update: I have worked on the sensitivity problem and I belive I have found a fix. I don't want to delete this yet until I know I am happy with the result.
+### Update: 
+I have worked on the sensitivity problem and I believe I have found a fix. I don't want to delete this yet until I know I am happy with the result.
 ________________________________________________________________________________________
 
 
-**LIST OF ADDITIONS:**
+## LIST OF ADDITIONS:
 
 Variable brightness like the variable speed
 
@@ -154,11 +154,11 @@ Do for each RGB to create new color
 ________________________________________________________________________________________
 
 
-**TROUBLESHOOTING**
+## TROUBLESHOOTING:
 
-Lights will flash randomly, or are blinking :   Most likely your wires are too small / too long. It can't handle all the amperage it needs to correctly.
-Possible bad connections. Example, ground and power wire are hanging and every now and then touching eachother and shorting the circuit.
 
-Lights turn on but go crazy, they show random colors, mainly white : You are not grounded correctly. Your power source is connected to your LED strip correctly, but now you need to also ground it to the arduino
-
-Lights will begin to dim and turn red when more lights get lit up. Sometimes it even stops working completly and stays stuck on red : Your power source is not strong enough.
+    Lights will flash randomly, or are blinking --->         Most likely your wires are too small / too long. It can't handle all the amperage it needs to correctly. Possible bad connections. Example, ground and power wire are hanging and every now and then touching eachother and shorting the circuit.
+    
+    Lights turn on but go crazy, they show random colors, mainly white  --->      You are not grounded correctly. Your power source is connected to your LED strip correctly, but now you need to also ground it to the arduino
+    
+    Lights will begin to dim and turn red when more lights get lit up. Sometimes it even stops working completly and stays stuck on red1   --->     Your power source is not strong enough.
