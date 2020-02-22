@@ -6,8 +6,12 @@
  * If you want the lights to move from FTB, the start should be 0.
  * If you want the lights to move from BTF, the start should be NUM_LEDS - 1.
  */
-void OG(int start)
+void OG(bool forward)
 {
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+  moveLights(forward);
+  
   readSpectrum();
   float R = band[0] + band[1];
   float G = band[2] + band[3] + band[4];
@@ -31,44 +35,120 @@ void OG(int start)
  * If you want the lights to move from FTB, the start should be 0.
  * If you want the lights to move from BTF, the start should be NUM_LEDS - 1.
  */
-void sevenColors(int start)
+void sevenColors(bool forward)
 {
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+  moveLights(forward);
+
+  readSpectrum();
+  leds[start] = lightSwitch(highestBand());
+}
+
+
+/*
+ * This basically creates RGB base on bands 0,3,6.
+ * After we find the sensitivity, we can use that as sort of a proportion
+ * to know how bright we should light the R, G, and B individually.
+ * 
+ * (band Reading)/(Sensitivity) = (???Value we want???)/255
+ *
+ * Doesn't look as good as I thought. I don't know if that is becasue I can
+ * code it better and tune it, or if this is the best it gets.
+ */
+void Smooth(bool forward)
+{
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+  moveLights(forward);
+
+  // float oldR = (band[0]) * (255/(float)sensitivity);
+  // float oldG = (band[3]) * (255/(float)sensitivity);
+  // float oldB = (band[6]) * (255/(float)sensitivity);
+
   readSpectrum();
 
-  int tracker = 0;
-  band[0] = 3* band[0];
-  band[1] = 2* band[1];
-  for(int i = 1; i < 7; i++)
-  {
-    if(band[i] > band[tracker])
-      tracker = i;
-  }
+  float R = (band[0]) * (255/(float)sensitivity);
+  float G = (band[3]) * (255/(float)sensitivity);
+  float B = (band[6]) * (255/(float)sensitivity);
 
-  switch (tracker)
-  {
-    case 0:
-      leds[start] = CRGB(255, 0, 0);
-      break;
-    case 1:
-      leds[start] = CRGB(255, 127, 0);
-      break;
-    case 2:
-      leds[start] = CRGB(255, 255, 0);
-      break;
-    case 3:
-      leds[start] = CRGB(0, 255, 0);
-      break;
-    case 4:
-      leds[start] = CRGB(0, 255, 255);
-      break;
-    case 5:
-      leds[start] = CRGB(0, 127, 255);
-      break;
-    case 6:
-      leds[start] = CRGB(0, 0, 255);
-      break;
-  }
+
+// if(oldR > R)
+//   R = R - 10;
+// if(oldG > G)
+//   G = G - 10;
+// if(oldB > B)
+//   B = B - 10;
+
+if(R > 255) //if over 255, it restarts. So like 257 acts like 2
+  R=255;
+if(G > 255)
+  G=255;
+if(B > 255)
+  B=255;
+
+  leds[start] = CRGB(R,G,B);
+  FastLED.show();
 }
+
+
+/*
+ * Allows you to split the LEDs into even sections and have the lights start at different sections.
+ * For example, if I split(2), the strip will be cut in half. The lights will seem to flow
+ * from the end of the strip and from the middle. The remainder will just be added to last strip.
+ * Made for Summer.
+ */
+// void split(bool forward, int numberOfSections)//Right now is just doing sevenColor multiple times
+// {
+//   int start;
+
+//   for(int i = 0; i < numberOfSections; i++)
+//   {
+//     start = ((NUM_LEDS/numberOfSections) * i);
+//     if(forward == false)
+//       start = NUM_LEDS - start;
+
+//     sevenColors(start);
+//   }  
+// }// THIS IS BROKE RIGHT NOW BECAUSE I CHANGED HOW sevenColors() WORKS.
+
+
+/*
+ * How fast the lights move is dependent on if the bass is hitting or not.
+ * Havn't gotten the chance to finish this yet.
+ */
+//void bassSpeed()
+//{
+ // readSpectrum();
+
+  //if(band[0] > sensitivity || band[1] > sensitivity)
+    //Delay(30);
+
+ // moveLights(true);
+ // sevenColors(0);
+//}
+
+
+void bassStartsNewColor(bool forward)
+{
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+  moveLights(forward);
+  
+  readSpectrum();
+  if(isHit(0) == true)
+    bassColor = CRGB(random(255),random(255),random(255));
+
+  leds[start] = bassColor;
+  FastLED.show();
+}
+
+
+/* 
+ *------------------------------------------------------------------------
+ * THE FUNCTIONS BELOW DO NOT NEED TO MOVE THE LIGHTS BEFORE BEING CALLED
+ *------------------------------------------------------------------------
+ */
 
 void allWhite()
 {
@@ -77,6 +157,7 @@ void allWhite()
   {
     leds[i] = CRGB(255,255,255);
   }
+  FastLED.show();
 }
 
 
@@ -89,21 +170,27 @@ void switchOnBeat()//whole strip one color, changes to random color when bass hi
   int randomB = random(255);
   int fade = 60;
 
-  while(band[0] + band[1] < 600) //fades to black, easier on eyes
+  while(!isHit(0) || !(highestBand() == 0))
   {
-    FastLED.setBrightness(fade);
+    FastLED.setBrightness(fade);//fades, easier on eyes
     if(fade > 20)
       fade = fade - 1;
     FastLED.show();
     readSpectrum();
   }
-
+  
   for (int i = 0; i < NUM_LEDS; i++)
   {
     leds[i] = CRGB(randomR, randomG, randomB);
   }
   FastLED.setBrightness(100);
-  delay(30);//So it doesn't just flash during periods where bass is up
+  FastLED.show();
+
+   while(isHit(0) || highestBand() == 0)//This helps it to not constantly flash when the amplitude is over the sensitivity
+   {
+     //wait
+     readSpectrum();
+   }
 }
 
 
@@ -111,66 +198,237 @@ void switchOnBeat()//whole strip one color, changes to random color when bass hi
  * For this idea, the first light is lit, then the second, then third etc.
  * Once it gets to the end it restarts over the old lights
  */
-void snake()//needs work
+void snake(bool forward)//needs work
 {
   for (int i = 0; i < NUM_LEDS; i++)
   {
-    sevenColors(i);
+    leds[i] = lightSwitch(highestBand());
     FastLED.show();
     delay(20);    
   }
-  for (int i = 0; i < NUM_LEDS; i++)
+  for (int i = 0; i < NUM_LEDS; i++) //defaults to a specific color, just messing around right now
   {
     leds[i] = CRGB(75, 0, 150);
   }
 }
 
 
-void forJosiah(int start)
+/*
+ * Strip split into 7 sections, one for each band.
+ * Each band is a specific color. How many lights that turn on in each section depends on how high
+ * that band's amplitude is.
+ * splitting my strand into 7 bands gives me 42 LEDs per band.
+ * I separate each light by a white light, just because there is a remainder of 6 and it works
+ *
+ * Can add parameter in the future to make the number of sections variable.
+ * Changes would be to switch the parameter for 7, adjust start and end.
+ * Will need to get rid of white lights, that doesn't work with every number.
+ */
+void sevenBounce()
 {
-readSpectrum();
+  readSpectrum();
+  
+  int howManyToLight;
+  int sectionlength = NUM_LEDS/7;//42
+  float temp;
+
+  for(int i = 0; i < 7; i++)
+  {
+    temp = ((float) band[i]/(float) sensitivity);
+    howManyToLight = temp * sectionlength;
+
+    howManyToLight < 10 ? howManyToLight = 1 : NULL;
+    howManyToLight > sectionlength ? howManyToLight = sectionlength : NULL;
+
+    int start = (i*sectionlength) + i; //These need to change if parameter is added
+    int end = ((i+1) * sectionlength) + i - 1;
+    int lastToLight = start + howManyToLight;
+
+    bounce(start, end, lastToLight, i);
+  }
+
+  for(int i = 1; i < 7; i++)  //For the white lights in between each segment
+  {
+    leds[(((i*sectionlength) + i) - 1)] = CRGB(100,100,100);
+  }  
+
+// 0-41, 42, 43-84, 85, 86-127, 128, 129-170, 171, 172-213, 214, 215-256, 257-299
+}
+
+
+/*
+ * Basically the same as the sevenColors except bass color changes randomly
+ * Every time the bass notes hit. I gotchu Josiah.
+ */
+void forJosiah(bool forward)
+{
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+  moveLights(forward);
+
+  readSpectrum();
 
   int tracker = 0;
-  band[0] = 3* band[0];
-  band[1] = 2* band[1];
   for(int i = 1; i < 7; i++)
   {
     if(band[i] > band[tracker])
       tracker = i;
   }
 
-  switch (tracker)
+  if(tracker == 0 || tracker == 1)
+    leds[start] = lightSwitch(7);
+  else
+    leds[start] = lightSwitch(tracker);
+}
+
+/*
+ * Name kinda explains it. Picks a color and slowly changes to that color.
+ */
+void randomTransition()
+{
+  int goalR = random(255);
+  int goalG = random(255);
+  int goalB = random(255);
+
+  int r = leds[0].red;
+  int g = leds[0].green;
+  int b = leds[0].blue;
+
+  while(leds[0] != CRGB(goalR, goalG, goalB))
   {
-    case 2:
-      leds[start] = CRGB(128, 0, 255);
-      break;
-    case 3:
-      leds[start] = CRGB(0, 128, 255);
-      break;
-    case 4:
-      leds[start] = CRGB(255, 0, 0);
-      break;
-    case 5:
-      leds[start] = CRGB(255, 150, 0);
-      break;
-    case 6:
-      leds[start] = CRGB(0, 255, 200);
-      break;
-    case 1://bass bands
-      if(band[0] + band[1] > 600)
-      {
-        CRGB oldColor = bassColor;
-        bassColor = CRGB(random(255),random(255),random(255));
-        for (int i = 0; i < NUM_LEDS; i++)
-        {
-          if(leds[i] == oldColor)
-          {
-            leds[i] = bassColor;
-          }
-        }
-      }
-      leds[start] = bassColor;
-      delay(15);
-    break;
+    if(r < goalR)
+      r++;
+    if(r > goalR)
+      r--;
+
+    if(g < goalG)
+      g++;
+    if(g > goalG)
+      g--;
+
+    if(b < goalB)
+      b++;
+    if(b > goalB)
+      b--;
+
+    for(int i = 0; i < NUM_LEDS; i++)
+    {
+      leds[i] = CRGB(r,g,b);
+    }
+    FastLED.show();
+    delay(5); //Most likely going to need this so it isn't so crazy. Can make it variable too
   }
 }
+
+
+// 255,  G++,  0     //1
+// R--,  255,  0     //2
+// 0,    255,  B++   //3
+// 0,    G--,  255   //4
+// R++,  0,    255   //5
+// 255,  0,    B--   //6
+/*
+ * This does a rainbow effect. I just looked at the RGB color picker on google and
+ * saw that it starts with Red fully high, increments Green until its full, decrements
+ * Red until 0, increments Blue.... etc. 
+ * The speed is how fast you want it to switch colors.
+ * Future plans are going to be to also adjust the delay.
+ */
+void myRainbow(bool forward, int speed)
+{
+  int start;
+  forward == true ? start = 0 : start = NUM_LEDS -1;
+
+  for(int i = 0; i < 256; i+=speed)    //1
+  {
+    moveLights(forward);
+    leds[start] = CRGB(255, i, 0);
+    FastLED.show();
+    //delay(getDelay());
+  }
+
+  for(int i = 255; i >= 0; i-=speed)   //2
+  {
+    moveLights(forward);
+    leds[start] = CRGB(i, 255, 0);
+    FastLED.show();
+    //delay(getDelay());
+  }
+
+  for(int i = 0; i < 256; i+=speed)    //3
+  {
+    moveLights(forward);
+    leds[start] = CRGB(0, 255, i);
+    FastLED.show();
+    //delay(getDelay());
+  }
+
+  for(int i = 255; i >= 0; i-=speed)   //4
+  {
+    moveLights(forward);
+    leds[start] = CRGB(0, i, 255);
+    FastLED.show();
+    //delay(getDelay());
+  }
+
+  for(int i = 0; i < 256; i+=speed)    //5
+  {
+    moveLights(forward);
+    leds[start] = CRGB(i, 0, 255);
+    FastLED.show();
+    //delay(getDelay());
+  }
+
+  for(int i = 255; i >= 0; i-=speed)   //6
+  {
+    moveLights(forward);
+    leds[start] = CRGB(255, 0, i);
+    FastLED.show();
+    //delay(getDelay());
+  }
+  return;
+}
+
+
+/*
+ * Literally just orange and blue paterns haha Go Gators!
+ */
+// void goGators()
+// {
+//   int setting = random(10);
+
+//   switch (setting)
+//     {
+//         case 0: //Half orange, half blue
+//           for(int i = 0; i < NUM_LEDS/2; i++)
+//           {
+//             leds[i] = CRGB(0, 0, 255); // Blue
+//           }
+//           for(int i = Num_Leds/2, i < NUM_LEDS; i++)
+//           {
+//             leds[i] = CRGB(255, 127, 0); //Orange
+//           }
+//         break;
+//         case 1: //Every other, Orange and Blue
+//             for(int i = 0, i < NUM_LEDS; i++)
+//             {
+//               (NUM_LEDS % 2) == 0 ? leds[i] = CRGB(0, 0, 255) : leds[i] = CRGB(255, 127, 0);
+//             }
+//         break;
+//         case 2: //Bands 1-3 = Blue, 4-7 = Orange;
+//           readSpectrum();
+
+//         break;
+//         case 3:
+//             return CRGB(0, 255, 0);
+//         break;
+//         case 4:
+//             return CRGB(0, 255, 255);
+//         break;
+//         case 5:
+//             return CRGB(0, 127, 255);
+//         break;
+//         case 6:
+//             return CRGB(0, 0, 255);
+//         break;
+// }

@@ -5,7 +5,12 @@
 #define BRIGHTNESS 60 // Just the default for now, going to create a setting to make it variable
 
 CRGB leds[NUM_LEDS];
+
 CRGB bassColor = new CRGB(0,0,0); //used for some behaviors that use random colors
+int recentValues[50];
+int recentCount = 0;
+long sensitivity;
+bool aboveSensitivity;
 
 // AUDIO INPUT SETUP
 int strobe = 4;
@@ -14,7 +19,6 @@ int audio1 = A0;
 int audio2 = A1;
 int lightDelay = A2;
 int band[7];
-int highest[7];
 
 void setup() 
 { 
@@ -45,17 +49,34 @@ void setup()
 
 void loop()
 {
-    readSpectrum();
+    //OG(true);
 
-    //moveLightsBTF(leds, NUM_LEDS);
-    //OG(0);
-    //sevenColors(NUM_LEDS - 1);
+    //sevenColors(false);
+
+    Smooth(true);
+    //delay(5);
+
+    //split(true, 5);
+
+    //bassSpeed();
+
+    //allWhite();
+    
+    //switchOnBeat();
+    
     //snake();
 
-    switchOnBeat();
-    //moveLightsFTB(leds, NUM_LEDS);
-    //forJosiah(0);
+    //sevenBounce();
+    //delay(25);
 
-    FastLED.show();
-    delay(getDelay());
+    //forJosiah(true);
+
+    //myRainbow(true,10);
+
+    //randomTransition();
+
+    //FastLED.show();
+    //delay(getDelay());
+
+    //bassStartsNewColor(true);
 }
