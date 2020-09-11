@@ -1,4 +1,6 @@
-# Music Visualizer notes:
+# Cuttlefish Lights notes:
+
+![](7Color.gif)   ![](SwitchOnBeat.gif)
 
 First things first. These started off as my personal notes and how I thought of the project. I might not explain something perfectly, or even right, but I will explain it with how I see how it works and hey, thats good enough for me. This isn't the best formatted README and is very plain, but I hope you find this helpful!
 ____________________________________________________________________________
