@@ -385,6 +385,41 @@ void snake(bool forward)//needs work
 
 
 /*
+ * Uses seperate array to keep track of colors.
+ * If you use the CHSV object instead of CRGB, 
+ * you can make a color by chaging the Hue
+ * so you can sort the seperate colors array array
+ * and constantly update the leds[] with the colors[]
+ */
+void sort(int algorithm)
+{
+
+  for(int i = 0; i < NUM_LEDS - 1; i++)
+  {
+    colors[i] = random(255);
+    leds[i] = CHSV(colors[i],255,255);
+  }
+  FastLED.show();
+
+
+  switch (algorithm)
+    {
+        case 0:
+          //mergeSort(0, NUM_LEDS - 1);
+        break;
+        case 1:
+          selectionSort(20);
+            
+        break;
+        case 2:
+            bubbleSort(0);
+        break;
+        
+    }
+}
+
+
+/*
  * Allows you to split the LEDs into even sections and have the lights start at different sections.
  * For example, if I split(2), the strip will be cut in half. The lights will seem to flow
  * from the end of the strip and from the middle. The remainder will just be added to last strip.

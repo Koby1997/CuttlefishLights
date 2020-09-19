@@ -5,6 +5,7 @@
 #define BRIGHTNESS 60 // Just the default for now, going to create a setting to make it variable
 
 CRGB leds[NUM_LEDS];
+int colors[NUM_LEDS];
 
 CRGB bassColor = new CRGB(0,0,0); //used for some behaviors that use random colors
 int recentValues[50];
@@ -61,8 +62,8 @@ void loop()
 
   //OG(true);
 
-  rainbow(true,10);
-
+  //rainbow(true,10);
+  
   //randomTransition();
 
   //sevenBounce();
@@ -78,4 +79,6 @@ void loop()
   //split(true, 5);
 
   //switchOnBeat();    
+
+  sort(1);
 }

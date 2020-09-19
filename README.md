@@ -151,6 +151,7 @@ scratch:
 for lights smoothly: keep track of highest amplitude for each band for a long time over multiple songs. Use that as the denominator of a fraction and read new values.
 these values are top of the fracion. do : input/highest = RGB/255
 Do for each RGB to create new color
+simple android app maker tutorial: https://www.freecodecamp.org/news/learn-to-develop-and-android-app-no-experience-required/
 ________________________________________________________________________________________
 
 
