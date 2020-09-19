@@ -407,12 +407,21 @@ void sort(int algorithm)
         case 0:
           //mergeSort(0, NUM_LEDS - 1);
         break;
+
         case 1:
           selectionSort(20);
-            
         break;
+
         case 2:
-            bubbleSort(0);
+          bubbleSort(0);
+        break;
+
+        case 3:
+          insertionSort(0);
+        break;
+
+        case 4:
+          heapSort(0);
         break;
         
     }
