@@ -1,4 +1,6 @@
-# Music Visualizer notes:
+# Cuttlefish Lights notes:
+
+![](7Colors.gif)![](SwitchOnBeat.gif)
 
 First things first. These started off as my personal notes and how I thought of the project. I might not explain something perfectly, or even right, but I will explain it with how I see how it works and hey, thats good enough for me. This isn't the best formatted README and is very plain, but I hope you find this helpful!
 ____________________________________________________________________________
@@ -89,7 +91,7 @@ ________________________________________________________________________________
 ## IN THE CODE:
 
 So one thing that is very useful is the FastLED library. That makes the LEDs super easy to work with.
-But at the top of the musicVisualizer.ino is a lot of important settings that you can change depending on your set up.
+But at the top of the CuttlefishLights.ino is a lot of important settings that you can change depending on your set up.
 For example, NUM_LEDS is the number of LEDs you have stringed together. If you have half a strip, or 2 strips together, just changes this number.
 You should not have to change anything else in the code to get it to work.
 
@@ -111,7 +113,7 @@ This is made just for organization to keep all the behaviors separated. This is 
 
 Again, this was made just for organization. These are the functions that you can used to build a different behavior. If you need to move the lights, boom there are two functions. If you just need to read the spectrum, boom that's there too.
 
-So basically you can make tools (tools.ino) to build behaviors (LEDBehavior.ino) that your lights will adapt to in musicVisualizer.ino
+So basically you can make tools (tools.ino) to build behaviors (LEDBehavior.ino) that your lights will adapt to in CuttlefishLights.ino
 
 We are done! WOHOO! So what now?...
 MAKE IT BETTER!! There are so many things I want to do to make this better because this was only from one weekend. I want to add so many things, so there has to be things you would want to add. I have a list and I even put it at the bottom.
