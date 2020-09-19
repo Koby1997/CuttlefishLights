@@ -149,6 +149,9 @@ Gator stuff
 
 Make UI for whole project
 
+Add more sorts
+(figure out why Merge sort isn't working)
+
 scratch:
 for lights smoothly: keep track of highest amplitude for each band for a long time over multiple songs. Use that as the denominator of a fraction and read new values.
 these values are top of the fracion. do : input/highest = RGB/255
