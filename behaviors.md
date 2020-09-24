@@ -80,7 +80,7 @@ This basically creates a RGB color based on bands 0,3,6. After we find the sensi
  
 ## snake(bool forward)
 
-For this idea, the first light is lit, then the second, then third etc. Once it gets to the end it defaults all to one color and then restarts. This is like the opposite of **sevenColors()** in a way.
+For this idea, the first light is lit, then the second, then third etc. and the color is based on which band is currently the highest. Once it gets to the end it defaults all to one color and then restarts. This is like the opposite of **sevenColors()** in a way.
 
 ![](gifs/snake.gif)
 
@@ -90,14 +90,23 @@ For this idea, the first light is lit, then the second, then third etc. Once it 
 Uses separate array to keep track of colors. If you use the CHSV object instead of CRGB, you can make a color by charging the Hue so you can sort the separate colors array array and constantly update the leds[] with the colors[]. The **int algorithm** chooses which sort method is used.
 
 0)	mergeSort()	//currently broken
+
 1)	selectionSort()
+
 ![](gifs/selectionSort.gif)
+
 2)	bubbleSort()
+
 ![](gifs/bubbleSort.gif)
+
 3)	insertionSort()
+
 ![](gifs/insertionSort.gif)
+
 4)	heapSort()
+
 ![](gifs/heapSort.gif)
+
 5)	quickSort()	// currently broken
 
 
