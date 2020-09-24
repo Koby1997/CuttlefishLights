@@ -67,7 +67,7 @@ int highestBand()
  * Just sees if the band given is higher than the sensitivity
  */
 bool isHit(int b)
-{//for some reason a ternary wasn't working here?
+{
     if(band[b] > sensitivity)
         return true;
     else

@@ -25,10 +25,7 @@ void allWhite()
 //}
 
 
-/*
- * Whenever the bass band hits, a new color will sort of flow from the begining.
- * It will keep flowing this color until the next bass hits.
- */
+
 void bassStartsNewColor(bool forward)
 {
   int start;
@@ -44,10 +41,6 @@ void bassStartsNewColor(bool forward)
 }
 
 
-/*
- * Basically the same as the sevenColors except bass color changes randomly
- * Every time the bass notes hit. I gotchu Josiah.
- */
 void forJosiah(bool forward)
 {
   int start;
@@ -116,14 +109,6 @@ void forJosiah(bool forward)
 // }
 
 
-/*
- * This was the first behavior written. It is just a simple
- * if else statement to follow the beat. It only has
- * 4 lights but actually works very well.
- * The start parameter works with the moveLights functions.
- * If you want the lights to move from FTB, the start should be 0.
- * If you want the lights to move from BTF, the start should be NUM_LEDS - 1.
- */
 void OG(bool forward)
 {
   int start;
@@ -148,19 +133,6 @@ void OG(bool forward)
 }
 
 
-// 255,  G++,  0     //1
-// R--,  255,  0     //2
-// 0,    255,  B++   //3
-// 0,    G--,  255   //4
-// R++,  0,    255   //5
-// 255,  0,    B--   //6
-/*
- * This does a rainbow effect. I just looked at the RGB color picker on google and
- * saw that it starts with Red fully high, increments Green until its full, decrements
- * Red until 0, increments Blue.... etc. 
- * The speed is how fast you want it to switch colors.
- * Future plans are going to be to also adjust the delay.
- */
 void rainbow(bool forward, int speed)
 {
   int start;
@@ -217,9 +189,6 @@ void rainbow(bool forward, int speed)
 }
 
 
-/*
- * Name kinda explains it. Picks a color and slowly changes to that color.
- */
 void randomTransition()
 {
   int goalR = random(255);
@@ -257,17 +226,6 @@ void randomTransition()
 }
 
 
-/*
- * Strip split into 7 sections, one for each band.
- * Each band is a specific color. How many lights that turn on in each section depends on how high
- * that band's amplitude is.
- * splitting my strand into 7 bands gives me 42 LEDs per band.
- * I separate each light by a white light, just because there is a remainder of 6 and it works
- *
- * Can add parameter in the future to make the number of sections variable.
- * Changes would be to switch the parameter for 7, adjust start and end.
- * Will need to get rid of white lights, that doesn't work with every number.
- */
 void sevenBounce()
 {
   readSpectrum();
@@ -300,13 +258,6 @@ void sevenBounce()
 }
 
 
-/*
- * Each band is connected to a color, the band with the highest
- * amplitude will get output to the lights.
- * The start parameter works with the moveLights functions.
- * If you want the lights to move from FTB, the start should be 0.
- * If you want the lights to move from BTF, the start should be NUM_LEDS - 1.
- */
 void sevenColors(bool forward)
 {
   int start;
@@ -318,16 +269,6 @@ void sevenColors(bool forward)
 }
 
 
-/*
- * This basically creates RGB base on bands 0,3,6.
- * After we find the sensitivity, we can use that as sort of a proportion
- * to know how bright we should light the R, G, and B individually.
- * 
- * (band Reading)/(Sensitivity) = (???Value we want???)/255
- *
- * Doesn't look as good as I thought. I don't know if that is becasue I can
- * code it better and tune it, or if this is the best it gets.
- */
 void smooth(bool forward)
 {
   int start;
@@ -364,10 +305,6 @@ if(B > 255)
 }
 
 
-/*
- * For this idea, the first light is lit, then the second, then third etc.
- * Once it gets to the end it restarts over the old lights
- */
 void snake(bool forward)//needs work
 {
   for (int i = 0; i < NUM_LEDS; i++)
@@ -384,13 +321,6 @@ void snake(bool forward)//needs work
 }
 
 
-/*
- * Uses seperate array to keep track of colors.
- * If you use the CHSV object instead of CRGB, 
- * you can make a color by chaging the Hue
- * so you can sort the seperate colors array array
- * and constantly update the leds[] with the colors[]
- */
 void sort(int algorithm)
 {
 
@@ -423,6 +353,10 @@ void sort(int algorithm)
         case 4:
           heapSort(0);
         break;
+
+        case 5:
+          quickSort(0, NUM_LEDS - 1, 0);
+        break;
         
     }
 }
@@ -449,9 +383,6 @@ void sort(int algorithm)
 // }// THIS IS BROKE RIGHT NOW BECAUSE I CHANGED HOW sevenColors() WORKS.
 
 
-/*
- * Whole strip one color, changes to random color when bass hits
- */
 void switchOnBeat()
 {
   readSpectrum();

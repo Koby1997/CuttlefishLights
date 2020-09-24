@@ -95,8 +95,9 @@ void insertionSort(int delayTime)
             {
                 int tmp = colors[j-1];
                 colors[j-1] = colors[j];
-                leds[j+1] = CHSV(colors[j+1], 255, 255);
                 colors[j] = tmp;
+                
+                leds[j+1] = CHSV(colors[j+1], 255, 255);
                 leds[j] = CHSV(colors[j], 255, 255);
                 FastLED.show();
                 delay(delayTime);
@@ -118,7 +119,7 @@ void heapSort(int delayTime)
         colors[0] = colors[j];
         colors[j] = tmp;
 
-        leds[0] = CHSV(colors[0],255,255);
+        leds[0] = CHSV(colors[0], 255, 255);
         leds[j] = CHSV(colors[j], 255, 255);
         FastLED.show();
 
@@ -126,23 +127,88 @@ void heapSort(int delayTime)
     }
 }
 
-void heapify(int n, int i) {
-         int largest = i;
-         int left = 2*i + 1;
-         int right = 2*i + 2;
-         if (left < n && colors[left] > colors[largest])
-         largest = left;
-         if (right < n && colors[right] > colors[largest])
-         largest = right;
-         if (largest != i) {
-            int swap = colors[i];
-            colors[i] = colors[largest];
-            colors[largest] = swap;
+void heapify(int n, int i)
+{
+     int largest = i;
+     int left = 2*i + 1;
+     int right = 2*i + 2;
+     if (left < n && colors[left] > colors[largest])
+        largest = left;
+     if (right < n && colors[right] > colors[largest])
+        largest = right;
+     if (largest != i)
+     {
+        int swap = colors[i];
+        colors[i] = colors[largest];
+        colors[largest] = swap;
 
-            leds[i] = CHSV(colors[i], 255, 255);
-            leds[largest] = CHSV(colors[largest], 255, 255);
-            FastLED.show();
-            
-            heapify(n, largest);
-         }
-      }
+        leds[i] = CHSV(colors[i], 255, 255);
+        leds[largest] = CHSV(colors[largest], 255, 255);
+        FastLED.show();
+        
+        heapify(n, largest);
+    }
+}
+
+//quickSort got from here, then modified
+//https://www.tutorialspoint.com/chash-program-to-perform-quick-sort-using-recursion
+// void quickSort(int left, int right, int delayTime)
+// {
+//    if (left < right)
+//    {
+//       int pivot = partition(left, right, delayTime);
+//         Serial.println("PIVOT = ");
+//         Serial.print(pivot);
+//         Serial.println("Left = ");
+//         Serial.print(left);
+//         Serial.println("Right");
+//         Serial.print(right);
+//       if (pivot > 1)
+//          quickSort(left, pivot - 1, delayTime);
+
+//       if (pivot + 1 < right)
+//          quickSort(pivot + 1, right, delayTime);
+//    }
+// }
+
+// int partition(int left, int right, int delayTime)
+// {
+//    int pivot = colors[left];
+//    while(true)
+//    {Serial.println(8);
+//       while (colors[left] < pivot)
+//       {
+//         left++;
+//         Serial.print(1);
+//       }
+
+//       while (colors[right] > pivot)
+//       {
+//          right--;
+//          Serial.print(2);
+//       }
+
+//       if (left < right)
+//       {
+//           Serial.print(9);
+//           if(colors[left] == colors[right])
+//             return right;
+          
+//          int temp = colors[right];
+//          colors[right] = colors[left];
+//          colors[left] = temp;
+
+//          leds[right] = CHSV(colors[right], 255, 255);
+//          leds[left] = CHSV(colors[left], 255, 255);
+//          FastLED.show();
+//          delay(delayTime);
+//       }
+//       else
+//       {
+//           Serial.print(3);
+//         break;
+//       }
+//    }
+//    Serial.print(4);
+//    return right;
+// }

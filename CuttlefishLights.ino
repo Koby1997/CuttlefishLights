@@ -80,5 +80,5 @@ void loop()
 
   //switchOnBeat();    
 
-  sort(4);
+  sort(1);
 }
