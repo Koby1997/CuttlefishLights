@@ -80,7 +80,7 @@ This basically creates a RGB color based on bands 0,3,6. After we find the sensi
  
 ## snake(bool forward)
 
-For this idea, the first light is lit, then the second, then third etc. Once it gets to the end it defaults all to one color and then restarts. This is like the opposite of **sevenColors()** in a way.
+For this idea, the first light is lit, then the second, then third etc. and the color is based on which band is currently the highest. Once it gets to the end it defaults all to one color and then restarts. This is like the opposite of **sevenColors()** in a way.
 
 ![](gifs/snake.gif)
 
