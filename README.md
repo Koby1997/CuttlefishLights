@@ -56,6 +56,7 @@ If you don't have header pins and need to connect them a different way (Like I h
 
 Now the LEDs have 5 total wires. The 3 wires that are together are red(power) green(data line) and black(ground).
 So if you do not have the 5 Volt 10 Amp power supply for the light strip and you are powering the lights through the Arduino, you connect the red wire to 5V and the black to Ground.
+You also need a ground from the female end of the lights to the Ground on the Arduino.
 The data line gets connected to the Digital in 6 pin (It can really be any other pin, I just chose this one to keep my wires organized).
 I am not sure, but I think that the data line should only go one way. What I mean by that is that the arduino should connect to the female
 side of the lights. I read in some places that it is bad to try it the other way.
