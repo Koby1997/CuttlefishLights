@@ -225,6 +225,42 @@ void randomTransition()
   }
 }
 
+void randomTransition2(int wait, bool forward)//think of better name later
+{
+  int goalR = random(255);
+  int goalG = random(255);
+  int goalB = random(255);
+
+  int r = leds[0].red;
+  int g = leds[0].green;
+  int b = leds[0].blue;
+
+  while(leds[0] != CRGB(goalR, goalG, goalB))
+  {
+    if(r < goalR)
+      r++;
+    if(r > goalR)
+      r--;
+
+    if(g < goalG)
+      g++;
+    if(g > goalG)
+      g--;
+
+    if(b < goalB)
+      b++;
+    if(b > goalB)
+      b--;
+
+    leds[0] = CRGB(r,g,b);
+    moveLights(forward);
+
+    FastLED.show();
+    delay(wait); //Most likely going to need this so it isn't so crazy. Can make it variable too
+  }
+
+}
+
 
 void sevenBounce()
 {
@@ -314,9 +350,12 @@ void snake(bool forward)//needs work
     FastLED.show();
     delay(20);    
   }
+  int randomR = random(255);
+  int randomG = random(255);
+  int randomB = random(255);
   for (int i = 0; i < NUM_LEDS; i++) //defaults to a specific color, just messing around right now
   {
-    leds[i] = CRGB(75, 0, 150);
+    leds[i] = CRGB(50, 50, 50);
   }
 }
 
@@ -355,7 +394,7 @@ void sort(int algorithm)
         break;
 
         case 5:
-          quickSort(0, NUM_LEDS - 1, 0);
+          //quickSort(0, NUM_LEDS - 1, 0);
         break;
         
     }
@@ -405,12 +444,79 @@ void switchOnBeat()
   {
     leds[i] = CRGB(randomR, randomG, randomB);
   }
-  FastLED.setBrightness(100);
+  FastLED.setBrightness(60);
   FastLED.show();
 
    while(isHit(0) || highestBand() == 0)//This helps it to not constantly flash when the amplitude is over the sensitivity
    {
-     //wait
+     delay(25);
      readSpectrum();
    }
+}
+
+
+void daysUntilGraduation(int daysLeft)
+{ 
+  int start = 230 - daysLeft;
+  moveLights(true);
+  leds[start] = CRGB(random(255),random(255),random(255));
+
+  for(int i = 0; i < start; i++)
+  {
+    leds[i] = CRGB(0,0,0);
+  }
+  for(int i = 231; i < NUM_LEDS-1; i++)
+  {
+    leds[i] = CRGB(0,0,0);
+  }
+  
+  FastLED.show();
+  delay(20);
+}
+
+void daysUntilGraduation2(int daysLeft)
+{ 
+  int start = 230;
+  leds[start] = CRGB(random(255),random(255),random(255));
+  start = start - 7;
+  leds[start] = CRGB(0,0,255);
+  start = start - 7;
+  leds[start] = CRGB(0,85,255);
+  start = start - 7;
+  leds[start] = CRGB(0,170,255);
+  start = start - 7;
+  leds[start] = CRGB(0, 255,255);
+  start = start - 7;
+  leds[start] = CRGB(0, 255,170);
+  start = start - 7;
+  leds[start] = CRGB(0, 255,85);
+  start = start - 7;
+  leds[start] = CRGB(0,255,0);
+  start = start - 7;
+  leds[start] = CRGB(85,255,0);
+  start = start - 7;
+  leds[start] = CRGB(170,255,0);
+  start = start - 7;
+  leds[start] = CRGB(255,255,0);
+  start = start - 7;
+  leds[start] = CRGB(255,170,0);
+  start = start - 7;
+  leds[start] = CRGB(255,85,0);
+  start = start - 7;
+  leds[start] = CRGB(255,0,0);
+  
+
+  moveLights(false);
+
+  for(int i = 0; i < 230-daysLeft; i++)
+  {
+    leds[i] = CRGB(0,0,0);
+  }
+  for(int i = 231; i < NUM_LEDS-1; i++)
+  {
+    leds[i] = CRGB(0,0,0);
+  }
+  
+  FastLED.show();
+  delay(50);
 }

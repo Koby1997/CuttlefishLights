@@ -50,35 +50,47 @@ void setup()
 
 void loop()
 {
+  //Change numbers for fun if you want to mess around. Also change between true and false to change direction.
+  //Also, some need music, some don't. So if it is acting weird add music.
+
+
   //allWhite();
 
-  //bassSpeed();
+  //bassSpeed();                //not made yet, don't use
 
   //bassStartsNewColor(true);
 
-  //forJosiah(true);
+  //forJosiah(true);            //hard to explain, weird one tho, kinda broke
 
-  //goGators();
+  //goGators();                 //not made yet, don't use
 
   //OG(true);
 
-  //rainbow(true,10);
+  //rainbow(true,10);           //try changing the number
   
   //randomTransition();
 
+  randomTransition2(0, true);
+
   //sevenBounce();
   //delay(25);
+  //FastLED.show();
   
-  //sevenColors(false);
+  //sevenColors(true);
+  //FastLED.show();
 
   //smooth(true);
   //delay(5);
 
   //snake(true);
 
-  //split(true, 5);
+  //split(true, 5);              //Currently Broke
 
-  //switchOnBeat();    
+  //switchOnBeat();              //need to work on
 
-  sort(1);
+  //sort(1);                     //can change from 1-4
+
+  //daysUntilGraduation(66);
+
+  //daysUntilGraduation2(61);
 }

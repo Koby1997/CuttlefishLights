@@ -150,13 +150,17 @@ void heapify(int n, int i)
     }
 }
 
-//quickSort got from here, then modified
-//https://www.tutorialspoint.com/chash-program-to-perform-quick-sort-using-recursion
+
+//broken
+//
+// //quickSort got from here, then modified
+// //https://www.tutorialspoint.com/chash-program-to-perform-quick-sort-using-recursion
 // void quickSort(int left, int right, int delayTime)
 // {
+//     int pivot;
 //    if (left < right)
 //    {
-//       int pivot = partition(left, right, delayTime);
+//         pivot = partition(left, right, delayTime);
 //         Serial.println("PIVOT = ");
 //         Serial.print(pivot);
 //         Serial.println("Left = ");
@@ -190,8 +194,8 @@ void heapify(int n, int i)
 
 //       if (left < right)
 //       {
-//           Serial.print(9);
-//           if(colors[left] == colors[right])
+//          Serial.print(9);
+//          if(colors[left] == colors[right])
 //             return right;
           
 //          int temp = colors[right];
@@ -205,8 +209,8 @@ void heapify(int n, int i)
 //       }
 //       else
 //       {
-//           Serial.print(3);
-//         break;
+//          Serial.print(3);
+//             break;
 //       }
 //    }
 //    Serial.print(4);
