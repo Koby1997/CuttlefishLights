@@ -74,6 +74,14 @@ bool isHit(int b)
         return false;
 }
 
+bool isLightHit(int b)
+{
+    if(band[b] > (sensitivity / 2))
+        return true;
+    else
+        return false;
+}
+
 
 /*
  * Simple switch-case statement to pic different colors for different behaviors

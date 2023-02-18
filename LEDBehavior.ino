@@ -304,6 +304,55 @@ void sevenColors(bool forward)
   leds[start] = lightSwitch(highestBand());
 }
 
+//Mix between sevenBounce and switchOnBeat. Can't use the brightness this time though because that would effect all sections.
+void sevenFade()
+{
+  readSpectrum();
+  int sectionLength = NUM_LEDS/7;//42
+
+  for(int section = 0; section < 7; section++)//check each section
+  {
+
+    int start = (section * sectionLength) + section;
+    int end = start + sectionLength;
+
+    if(!isLightHit(section))//if section is not a hit, lower all RGB values
+    {
+      Serial.print(section);
+      Serial.println(" Is not a hit");
+      CRGB currentColor = leds[start];
+
+      //fade 10% each time it doesn't hit
+      currentColor.r = currentColor.r * 0.9;
+      currentColor.g = currentColor.g * 0.9;
+      currentColor.b = currentColor.b * 0.9;
+
+      for(int i = start; i < end; i++)
+      {
+        leds[i] = currentColor;
+      }
+
+    }
+    else //section is a hit, set back to max color
+    {
+      for(int i = start; i < end; i++)
+      {
+        leds[i] = lightSwitch(section);
+      }
+    }
+  }
+
+  // for(int i = 1; i < 7; i++)  //if you want white lights in between each segment
+  // {
+  //   leds[(((i*sectionLength) + i) - 1)] = CRGB(255,255,255);
+  // } 
+
+  FastLED.setBrightness(100);
+  FastLED.show();
+  delay(25);
+
+}
+
 
 void smooth(bool forward)
 {

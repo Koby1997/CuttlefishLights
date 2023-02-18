@@ -5,7 +5,7 @@
 #define BRIGHTNESS 60 // Just the default for now, going to create a setting to make it variable
 
 CRGB leds[NUM_LEDS];
-int colors[NUM_LEDS];
+int colors[NUM_LEDS];//used for sorting behaviors. Uses CHSV instead of CRGB
 
 CRGB bassColor = new CRGB(0,0,0); //used for some behaviors that use random colors
 int recentValues[50];
@@ -78,6 +78,8 @@ void loop()
   
   //sevenColors(true);
   //FastLED.show();
+
+  //sevenFade();
 
   //smooth(true);
   //delay(5);
