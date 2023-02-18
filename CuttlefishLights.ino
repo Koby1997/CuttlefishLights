@@ -1,4 +1,6 @@
 #include <FastLED.h>
+#include <SoftwareSerial.h>
+
 #define NUM_LEDS 300 //How many LEDs are on your strip
 #define DATA_PIN 6
 #define LED_TYPE WS2812B
@@ -20,6 +22,14 @@ int audio1 = A0;
 int audio2 = A1;
 int lightDelay = A2;
 int band[7];
+
+
+//For Bluetooth
+SoftwareSerial hc06(2,3);
+String cmd="";
+
+
+
 
 void setup() 
 { 
@@ -45,6 +55,9 @@ void setup()
   // Serial and input setup
   Serial.begin(115200);
   Serial.println("\nListening...");
+
+  //Initialize Bluetooth Serial Port
+  hc06.begin(115200);
 }
 
 
@@ -58,7 +71,7 @@ void loop()
 
   //bassSpeed();                //not made yet, don't use
 
-  //bassStartsNewColor(true);
+  bassStartsNewColor(true);
 
   //forJosiah(true);            //hard to explain, weird one tho, kinda broke
 
@@ -70,7 +83,7 @@ void loop()
   
   //randomTransition();
 
-  randomTransition2(0, true);
+  //randomTransition2(0, true);
 
   //sevenBounce();
   //delay(25);
@@ -92,7 +105,71 @@ void loop()
 
   //sort(1);                     //can change from 1-4
 
-  //daysUntilGraduation(66);
+  //daysUntilGraduation(0);//LETS GOOOO
 
-  //daysUntilGraduation2(61);
-}
+  //daysUntilGraduation2(0);//LETS GOOOO
+
+
+
+
+//   //Read data from HC06
+//  	while(hc06.available()>0)
+//   {
+//  			cmd+=(char)hc06.read();
+//  	}
+
+//   //if there is something
+//   if(cmd!="")
+//   {
+//  			Serial.print("Command recieved : ");
+//  			Serial.println(cmd);
+ 			
+//  			if(cmd=="RED")
+//       {
+//  							chooseRGB(1);
+//  			}
+//       else if(cmd=="GREEN")
+//       {
+//  							chooseRGB(2);
+//  			}else
+//       {
+//  							chooseRGB(3);
+//  			}
+//  			cmd=""; //reset cmd
+//  	}
+
+
+
+// }
+
+
+// void chooseRGB(int RGB)
+// {
+//   FastLED.setBrightness(60); //white takes a lot of power and gets hot
+
+//   if(RGB == 1)
+//   {
+//     for(int i = 0; i < NUM_LEDS; i++)
+//     {
+//       leds[i] = CRGB(255,0,0);
+//     }
+//   }
+//   else if(RGB == 2)
+//   { 
+//     for(int i = 0; i < NUM_LEDS; i++)
+//     {
+//       leds[i] = CRGB(0,255,0);
+//     }
+//   }
+//   else
+//   {
+//     for(int i = 0; i < NUM_LEDS; i++)
+//     {
+//       leds[i] = CRGB(0,0,255);
+//     }
+//   }
+
+//   FastLED.show();
+
+
+ }
