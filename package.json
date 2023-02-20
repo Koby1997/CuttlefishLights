@@ -1,0 +1,22 @@
+{
+  "name": "cuttlefishlights",
+  "version": "1.0.0",
+  "description": "A music visualizer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Koby1997/CuttlefishLights.git"
+  },
+  "author": "Koby Miller",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Koby1997/CuttlefishLights/issues"
+  },
+  "homepage": "https://github.com/Koby1997/CuttlefishLights#readme",
+  "devDependencies": {
+    "electron": "^23.1.0"
+  }
+}
