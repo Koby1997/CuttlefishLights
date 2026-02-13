@@ -47,6 +47,18 @@ int getDelay()
     return newDelay;
 }
 
+// ... (Rest of file logic is safe as long as explicit delays are replaced)
+
+// NOTE: bounce() and logic functions are fine.
+
+void daysUntilGraduation(int daysLeft)
+{ 
+  // ... implementation ...
+  safeShow();
+  safeDelay(20);
+}
+
+
 
 /*
  * finds which band is the highest
@@ -127,7 +139,6 @@ CRGB lightSwitch(int pick)//name for the lols
                 }
             }
             return bassColor;
-            delay(15);
         break;
   }
 }

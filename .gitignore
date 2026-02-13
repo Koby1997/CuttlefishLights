@@ -1,0 +1,19 @@
+# Editor files
+.vscode
+*.sublime-workspace
+.DS_Store
+
+# Arduino build artifacts
+*.hex
+*.elf
+*.bin
+build/
+__vm/
+
+# Node.js (in case inadvertent installs here)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Excel temporary files
+~$*.xlsx
