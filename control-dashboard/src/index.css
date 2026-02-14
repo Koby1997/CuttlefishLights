@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f172a; /* Slate 900 */
-  --foreground: #f8fafc; /* Slate 50 */
+  --background: #18181b;
+  /* Zinc 900 (Lighter than 950) */
+  --foreground: #f4f4f5;
+  /* Zinc 100 */
 }
 
 body {
