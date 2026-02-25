@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { serialService } from './services/SerialService';
+import SortVisualizer from './components/SortVisualizer';
 import {
   Zap, Power, Activity, Disc, AlignJustify,
-  Palette, Music, Waves, ArrowRightLeft, Sun,
-  LayoutDashboard, Settings, ChevronRight
+  Palette, Music, Waves, Wind, ArrowRightLeft, Sun,
+  LayoutDashboard, Settings, ChevronRight, Hammer
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -20,7 +21,8 @@ function App() {
       hasSpeed: true,
       hasDirection: true,
       hasBrightness: true,
-      hasDensity: true // Mapped to VAR1
+      hasDensity: true, // Mapped to VAR1
+      category: "Ambient & Flow"
     },
     {
       id: "OG",
@@ -29,7 +31,18 @@ function App() {
       desc: "The original audio-reactive mode. Pulses with the beat.",
       hasSpeed: false,
       hasDirection: true,
-      hasBrightness: true
+      hasBrightness: true,
+      category: "Music-Reactive"
+    },
+    {
+      id: "SMOOTH",
+      title: "Band Blend",
+      icon: Disc,
+      desc: "Bass drives red, mids drive green, highs drive blue — blended into a flowing color.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      category: "Music-Reactive"
     },
     {
       id: "SEVENCOLORS",
@@ -38,16 +51,8 @@ function App() {
       desc: "Cycles through 7 distinct colors with hard transitions.",
       hasSpeed: false,
       hasDirection: true,
-      hasBrightness: true
-    },
-    {
-      id: "SNAKE",
-      title: "Bio-Snake",
-      icon: Waves,
-      desc: "A single 'snake' of light that slithers based on audio intensity.",
-      hasSpeed: true,
-      hasDirection: true,
-      hasBrightness: true
+      hasBrightness: true,
+      category: "Music-Reactive"
     },
     {
       id: "BOUNCE",
@@ -56,7 +61,10 @@ function App() {
       desc: "Bouncing balls of light that react to frequency bands.",
       hasSpeed: false,
       hasDirection: false,
-      hasBrightness: true
+      hasBrightness: true,
+      hasSubMode: true,  // 0 = Bounce, 1 = Fade
+      hasResponse: true,  // Controls smoothing speed (var2)
+      category: "Music-Reactive"
     },
     {
       id: "SWITCH",
@@ -65,16 +73,83 @@ function App() {
       desc: "Flashes the entire strip with a random color when a beat is detected.",
       hasSpeed: false,
       hasDirection: false,
-      hasBrightness: false
+      hasBrightness: false,
+      category: "Music-Reactive"
+    },
+    {
+      id: "SNAKE",
+      title: "Bio-Snake",
+      icon: Waves,
+      desc: "A single 'snake' of light that slithers based on audio intensity.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      hasDensity: true, // Mapped to VAR1 (Snake Length)
+      hasSnakeMode: true, // Mapped to VAR2 (Color Style)
+      category: "Music-Reactive"
+    },
+    {
+      id: "BUILDER",
+      title: "Builder",
+      icon: Hammer,
+      desc: "A single pointer that permanently paints an audio-reactive canvas.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      hasSubMode: true, // Used for Typewriter vs Overwrite styles
+      category: "Music-Reactive"
+    },
+    {
+      id: "BASSNEW",
+      title: "Bass Flow",
+      icon: Activity, // Reusing Activity or Music icon
+      desc: "Colors flow down the strip, changing every time the bass hits.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      category: "Music-Reactive"
+    },
+    {
+      id: "DRIFT",
+      title: "Color Drift",
+      icon: Waves,
+      desc: "The whole strip slowly fades between random colors.",
+      hasSpeed: true,
+      hasDirection: false,
+      hasBrightness: true,
+      category: "Ambient & Flow"
+    },
+    {
+      id: "FLOW",
+      title: "Color Flow",
+      icon: Wind,
+      desc: "A smoothly transitioning color flows down the strip.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      category: "Ambient & Flow"
+    },
+    {
+      id: "SORT",
+      title: "Sort Visualizer",
+      icon: AlignJustify,
+      desc: "Watch sorting algorithms rearrange scrambled colors in real time.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      hasSortMode: true,  // var1: 0=Bubble, 1=Selection, 2=Insertion, 3=Heap
+      category: "Ambient & Flow"
     },
     {
       id: "WHITE",
-      title: "Reading Light",
+      title: "Solid Color",
       icon: Sun,
-      desc: "Solid white light for visibility.",
+      desc: "A solid, customizable static color of your choice.",
       hasSpeed: false,
       hasDirection: false,
-      hasBrightness: true
+      hasBrightness: true,
+      hasColorPicker: true,
+      category: "Utilities"
     },
     {
       id: "OFF",
@@ -83,7 +158,8 @@ function App() {
       desc: "Turn off all LEDs.",
       hasSpeed: false,
       hasDirection: false,
-      hasBrightness: false
+      hasBrightness: false,
+      category: "Utilities"
     }
   ];
 
@@ -93,8 +169,51 @@ function App() {
   // Temporary states for the controls
   const [tempSpeed, setTempSpeed] = useState(50); // 1-100
   const [direction, setDirection] = useState(1); // 1 = Forward, 0 = Backward
-  const [tempBrightness, setTempBrightness] = useState(60); // 0-255
-  const [tempVar1, setTempVar1] = useState(0); // Generic Variable 1
+  const [tempBrightness, setTempBrightness] = useState(128); // 0-255
+  const [tempVar1, setTempVar1] = useState(20); // Generic Variable 1
+  const [tempVar2, setTempVar2] = useState(50); // Generic Variable 2 (e.g. Response)
+  const [tempColor, setTempColor] = useState("#ffffff"); // Hex Color for Solid Color mode
+
+  useEffect(() => {
+    // Force the aesthetic defaults for the initially selected mode on page load
+    handleModeSelect(modes[0].id);
+  }, []);
+
+  const handleModeSelect = (modeId) => {
+    setSelectedMode(modeId);
+
+    // Apply user-defined default aesthetics
+    // (We will expand this map as we go through each mode with the user)
+    switch (modeId) {
+      case "RAINBOW":
+        setTempSpeed(15);
+        setDirection(0); // Backward
+        setTempBrightness(128); // 50%
+        setTempVar1(20); // Density
+        break;
+      case "SNAKE":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        setTempBrightness(255); // Assuming max brightness is desired
+        setTempVar1(20); // Length of the snake
+        break;
+      case "BUILDER":
+        setTempSpeed(100); // Very fast sweeping
+        setDirection(1); // Forward
+        setTempBrightness(255);
+        setTempVar1(0); // 0 = Overwrite, 1 = Typewriter
+        break;
+      // Other defaults will go here
+      default:
+        // Generic safe defaults
+        setTempSpeed(50);
+        setDirection(1);
+        setTempBrightness(60);
+        setTempVar1(0);
+        setTempVar2(50);
+        break;
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -126,12 +245,21 @@ function App() {
     // Brightness: Default to 60 or tempBrightness
     const brightVal = tempBrightness;
 
-    // VAR1 / VAR2
-    const var1 = tempVar1;
-    const var2 = 0;
+    // VAR1 / VAR2 / VAR3
+    let var1 = tempVar1;
+    let var2 = tempVar2;
+    let var3 = 0;
+
+    // For Solid Color Mode, intercept vars and send RGB
+    if (mode.hasColorPicker) {
+      const hex = tempColor.replace('#', '');
+      var1 = parseInt(hex.substring(0, 2), 16); // R
+      var2 = parseInt(hex.substring(2, 4), 16); // G
+      var3 = parseInt(hex.substring(4, 6), 16); // B
+    }
 
     // Send the Single Unified Command
-    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2);
+    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3);
     setActiveMode(mode.id);
   };
 
@@ -181,40 +309,52 @@ function App() {
 
         {/* Navigation List */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
-          <div className="px-2 mb-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
-            Library
-          </div>
-          {modes.map((mode) => {
-            const isSelected = selectedMode === mode.id;
-            const isActive = activeMode === mode.id;
-            const Icon = mode.icon;
+          {/* Group modes by category */}
+          {["Music-Reactive", "Ambient & Flow", "Utilities"].map((category) => {
+            const categoryModes = modes.filter((m) => m.category === category);
+            if (categoryModes.length === 0) return null;
 
             return (
-              <button
-                key={mode.id}
-                onClick={() => setSelectedMode(mode.id)}
-                className={clsx(
-                  "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
-                  isSelected
-                    ? "bg-zinc-800 text-white shadow-sm border border-zinc-700/50"
-                    : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 border border-transparent"
-                )}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-md shadow-[0_0_8px_#f97316]" />
-                )}
+              <div key={category} className="mb-6">
+                <div className="px-2 mb-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                  {category}
+                </div>
+                <div className="space-y-1">
+                  {categoryModes.map((mode) => {
+                    const isSelected = selectedMode === mode.id;
+                    const isActive = activeMode === mode.id;
+                    const Icon = mode.icon;
 
-                <Icon size={18} className={clsx(
-                  "transition-colors",
-                  isSelected ? "text-orange-400" : "text-zinc-500 group-hover:text-zinc-400"
-                )} />
+                    return (
+                      <button
+                        key={mode.id}
+                        onClick={() => setSelectedMode(mode.id)}
+                        className={clsx(
+                          "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
+                          isSelected
+                            ? "bg-zinc-800 text-white shadow-sm border border-zinc-700/50"
+                            : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 border border-transparent"
+                        )}
+                      >
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-md shadow-[0_0_8px_#f97316]" />
+                        )}
 
-                <span className="flex-1 text-left">{mode.title}</span>
+                        <Icon size={18} className={clsx(
+                          "transition-colors",
+                          isSelected ? "text-orange-400" : "text-zinc-500 group-hover:text-zinc-400"
+                        )} />
 
-                {isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316]" />
-                )}
-              </button>
+                        <span className="flex-1 text-left">{mode.title}</span>
+
+                        {isActive && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316]" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -336,7 +476,8 @@ function App() {
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <Waves size={16} className="text-orange-500" /> Density
+                    <Waves size={16} className="text-orange-500" />
+                    {currentMode.id === "SNAKE" ? "Snake Length" : "Density"}
                   </label>
                   <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
                     {tempVar1}
@@ -345,17 +486,193 @@ function App() {
                 <input
                   type="range"
                   min="1"
-                  max="50"
+                  max="100"
                   value={tempVar1}
                   onChange={(e) => setTempVar1(parseInt(e.target.value))}
                   className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
                 />
                 <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Wide</span>
-                  <span>Tight</span>
+                  {currentMode.id === "SNAKE" ? (
+                    <>
+                      <span>Shorter</span>
+                      <span>Longer</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Wide</span>
+                      <span>Tight</span>
+                    </>
+                  )}
                 </div>
               </div>
             )}
+
+            {/* Sub-Mode Toggle (e.g. Bounce / Fade) */}
+            {currentMode.hasSubMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <Activity size={16} className="text-orange-500" /> Style
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                  <button
+                    onClick={() => setTempVar1(0)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      tempVar1 === 0
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    {currentMode.id === "BUILDER" ? "Overwrite" : "Bounce"}
+                  </button>
+                  <button
+                    onClick={() => setTempVar1(1)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      tempVar1 === 1
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    {currentMode.id === "BUILDER" ? "Typewriter" : "Fade"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Response / Smoothing Control (VAR2) */}
+            {currentMode.hasResponse && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                    <ChevronRight size={16} className="text-orange-500" /> Response
+                  </label>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {tempVar2}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={tempVar2}
+                  onChange={(e) => setTempVar2(parseInt(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Smooth</span>
+                  <span>Snappy</span>
+                </div>
+              </div>
+            )}
+
+            {/* Snake Color Style Selector (VAR2) */}
+            {currentMode.hasSnakeMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <Palette size={16} className="text-orange-500" /> Color Style
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                  {[
+                    { label: "Audio", val: 0 },
+                    { label: "Rainbow", val: 1 },
+                    { label: "Locked Bow", val: 2 },
+                    { label: "Random", val: 3 }
+                  ].map(({ label, val }) => (
+                    <button
+                      key={val}
+                      onClick={() => setTempVar2(val)}
+                      className={clsx(
+                        "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
+                        tempVar2 === val
+                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  Changes how the snake determines its body color
+                </p>
+              </div>
+            )}
+
+            {/* Sort Algorithm Selector (VAR1) */}
+            {currentMode.hasSortMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <AlignJustify size={16} className="text-orange-500" /> Algorithm
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                  {[
+                    { label: "Bubble", val: 0 },
+                    { label: "Selection", val: 1 },
+                    { label: "Insertion", val: 2 },
+                    { label: "Heap", val: 3 },
+                  ].map(({ label, val }) => (
+                    <button
+                      key={val}
+                      onClick={() => setTempVar1(val)}
+                      className={clsx(
+                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                        tempVar1 === val
+                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  Direction sets ascending ↑ or descending ↓
+                </p>
+
+                {/* Visualizer Injection */}
+                <SortVisualizer algorithm={tempVar1} direction={direction} speed={tempSpeed} />
+
+              </div>
+            )}
+
+            {/* Solid Color Picker */}
+            {currentMode.hasColorPicker && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                    <Palette size={16} className="text-orange-500" /> Strip Color
+                  </label>
+                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+                    Select the exact RGB to paint the entire strip
+                  </p>
+                </div>
+                <div className="relative group cursor-pointer">
+                  <input
+                    type="color"
+                    value={tempColor}
+                    onChange={(e) => {
+                      const newColor = e.target.value;
+                      setTempColor(newColor);
+
+                      const hex = newColor.replace('#', '');
+                      const r = parseInt(hex.substring(0, 2), 16);
+                      const g = parseInt(hex.substring(2, 4), 16);
+                      const b = parseInt(hex.substring(4, 6), 16);
+
+                      // Instantly activate and blast color to the strip
+                      serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b);
+                      if (activeMode !== currentMode.id) {
+                        setActiveMode(currentMode.id);
+                      }
+                    }}
+                    className="w-16 h-16 rounded-xl cursor-pointer bg-transparent border-0 p-0 shadow-lg shadow-black/40 overflow-hidden"
+                  />
+                  <div className="absolute inset-0 rounded-xl ring-2 ring-white/10 group-hover:ring-orange-500/50 transition-all pointer-events-none" />
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Action Bar */}
@@ -369,16 +686,13 @@ function App() {
             </div>
             <button
               onClick={() => handleApplyMode(currentMode.id)}
-              disabled={activeMode === currentMode.id}
               className={clsx(
                 "px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl flex items-center gap-3",
-                activeMode === currentMode.id
-                  ? "bg-zinc-800 text-zinc-500 cursor-default border border-zinc-700"
-                  : "bg-orange-500 text-white hover:bg-orange-400 hover:scale-[1.02] active:scale-[0.98] shadow-orange-900/20"
+                "bg-orange-500 text-white hover:bg-orange-400 hover:scale-[1.02] active:scale-[0.98] shadow-orange-900/20"
               )}
             >
-              {activeMode === currentMode.id ? "Running" : "Activate Pattern"}
-              {activeMode !== currentMode.id && <Zap size={18} />}
+              {activeMode === currentMode.id ? "Update Pattern" : "Activate Pattern"}
+              <Zap size={18} />
             </button>
           </div>
 

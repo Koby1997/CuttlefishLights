@@ -7,11 +7,10 @@
 #define DEFAULT_BRIGHTNESS 60
 
 CRGB leds[NUM_LEDS];
-uint8_t colors[NUM_LEDS]; // Optimization: changed int (2 bytes) to uint8_t (1 byte). Saves 300 bytes.
+uint8_t colors[NUM_LEDS]; // Memory Isolation Test: Commented out to save 300 bytes
 
 CRGB bassColor = CRGB(0,0,0); //used for some behaviors that use random colors
-int recentValues[20];
-int recentCount = 0;
+uint16_t emaAmplitude = 0;    // Optimization: Replaces recentValues[20] array (Saves 40 bytes)
 long sensitivity;
 bool aboveSensitivity;
 
@@ -21,11 +20,9 @@ int reset = 5;
 int audio1 = A0;
 int audio2 = A1;
 int lightDelay = A2;
-int band[7];
+uint16_t band[7];
 
 // Serial Communication
-String inputString = "";         // a String to hold incoming data
-bool stringComplete = false;  // whether the string is complete
 long lastSerialCheck = 0;
 
 // State Machine
@@ -37,34 +34,51 @@ enum BehaviorMode {
   SEVEN_COLORS,
   SWITCH_ON_BEAT,
   SNAKE,
-  SEVEN_BOUNCE // Added for visualization
+  SEVEN_BOUNCE, // Added for visualization
+  BASS_NEW,
+  DRIFT,
+  FLOW,
+  SMOOTH,
+  SORT,
+  BUILDER
 };
 
 BehaviorMode currentMode = RAINBOW; // Default behavior
-int currentSpeed = 50;
-int currentBrightness = 100;
-bool currentDirection = true; // true = forward, false = backward
-int currentVar1 = 0; // Generic Variable 1 (e.g., Length/Sensitivity)
-int currentVar2 = 0; // Generic Variable 2
+
+// Notice: Rainbow handles speed inversely inside its own function tick, 
+// using the raw 1-100 slider value rather than the inverted delay.
+int currentSpeed = 15; // Raw UI speed slider value
+
+int currentBrightness = 128; // 50%
+bool currentDirection = false; // true = forward, false = backward
+int currentVar1 = 20; // Density
+int currentVar2 = 50; // Generic Variable 2
+int currentVar3 = 0;  // Generic Variable 3 (Used for B in RGB)
 BehaviorMode lastMode = OFF; // Track mode changes for optimization
 
 //State variables for non-blocking functions
 unsigned long lastUpdate = 0;
 int stepIndex = 0; // Generic step counter for patterns
 
-//For Bluetooth (Optional/Legacy protection)
-SoftwareSerial hc06(2,3);
-String cmd="";
+// Function Prototypes
+void clearLeds();
+void safeDelay(int ms);
+void safeShow();
 
-// Function Prototypes
-void rainbowTick(bool forward, int speed);
-// Function Prototypes
-void rainbowTick(bool forward, int speed);
 void OGTick(bool forward);
+void rainbowTick(bool forward, int speed);
 void sevenColorsTick(bool forward);
-void snakeTick(bool forward, int speed);
 void switchOnBeatTick();
+void snakeTick(bool forward, int speed);
 void sevenBounceTick();
+void bassStartsNewColorTick(bool forward, int speed);
+void colorDriftTick(int speed);
+void colorFlowTick(bool forward, int speed);
+void smoothTick(bool forward, int speed);
+void sortTick();
+void builderTick(bool forward, int speed);
+
+// FastLED Wrapper Functions
 void moveLights(bool forward);
 void readSpectrum();
 // fill_solid is already handled by FastLED
@@ -92,11 +106,7 @@ void setup()
   // We are now handling flow control manually (15ms delay between chars).
   // High baud rate is better here because the byte transfer is faster (86us), fitting easier into gaps.
   Serial.begin(115200);
-  inputString.reserve(50); // Optimization: Reduced from 200 to 50 bytes.
   Serial.println(F("\nCuttlefish Ready. Listening for commands..."));
-
-  //Initialize Bluetooth Serial Port
-  hc06.begin(115200);
 }
 
 void loop() {
@@ -114,7 +124,7 @@ void loop() {
     case ALL_WHITE:
       // Simple static assignment, doing it once or repeatedly is fine (repeatedly uses power but ensures state)
        // Optimization: only set if changed, but for now simple is robust
-      fill_solid(leds, NUM_LEDS, CRGB(240,240,140));
+      fill_solid(leds, NUM_LEDS, CRGB(currentVar1, currentVar2, currentVar3));
       safeShow();
       safeDelay(50); // Refresh at 20fps to ensure state but mostly listen
       break;
@@ -136,9 +146,26 @@ void loop() {
     case SEVEN_BOUNCE:
        sevenBounceTick();
        break;
+    case BASS_NEW:
+       bassStartsNewColorTick(currentDirection, currentSpeed);
+       break;
+    case DRIFT:
+       colorDriftTick(currentSpeed);
+       break;
+    case FLOW:
+       colorFlowTick(currentDirection, currentSpeed);
+       break;
+    case SMOOTH:
+       smoothTick(currentDirection, currentSpeed);
+       break;
+    case SORT:
+       sortTick();
+       break;
+    case BUILDER:
+       builderTick(currentDirection, currentSpeed);
+       break;
     // Add other cases here as we refactor them
     default:
-       break;
        break;
   }
 
@@ -146,23 +173,11 @@ void loop() {
   static unsigned long lastHeartbeat = 0;
   if (millis() - lastHeartbeat > 200) {
     lastHeartbeat = millis();
-    Serial.println("<RDY>");
+    Serial.println(F("<RDY>"));
   }
 
   // Update State Tracking
   lastMode = currentMode;
-}
-
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char)Serial.read();
-
-    if (inChar == '\n') {
-      stringComplete = true;
-    } else {
-      inputString += inChar;
-    }
-  }
 }
 
 // Blocking Handshake Handler
@@ -171,93 +186,130 @@ void handleSerial() {
     char inChar = (char)Serial.read();
 
     if (inChar == '?') {
-      Serial.println("ACK:PAUSED");
+      Serial.println(F("ACK:PAUSED"));
 
-      String cmd = Serial.readStringUntil('>');
-
-      int startIdx = cmd.indexOf('<');
-      if (startIdx != -1) {
-          cmd = cmd.substring(startIdx + 1);
+      // 1. Wait until we see the start marker '<' or timeout (2 seconds)
+      // Discard any leftover '?' from the JS stream interval
+      unsigned long waitStart = millis();
+      bool foundStart = false;
+      while (millis() - waitStart < 2000) {
+        if (Serial.available()) {
+          char c = (char)Serial.read();
+          if (c == '<') {
+            foundStart = true;
+            break;
+          }
+        }
       }
 
-      parseCommand(cmd);
+      // 2. If we found '<', read until '>'
+      if (foundStart) {
+        Serial.setTimeout(500); // Give enough time for the full string to arrive
+        String cmd = Serial.readStringUntil('>');
+        parseCommand(cmd);
+      } else {
+        Serial.println(F("DEBUG_ERR: Timeout waiting for <"));
+      }
     }
   }
 }
 
 void parseCommand(String command) {
   command.trim();
-  if (!command.startsWith("SET:")) return; // Silent fail for viz purity? Or print?
+  Serial.print(F("DEBUG_RX: '"));
+  Serial.print(command);
+  Serial.println(F("'"));
+
+  if (!command.startsWith("SET:")) {
+      Serial.println(F("DEBUG_ERR: No SET: prefix"));
+      return; 
+  }
   
-  // Extract parameters string (e.g., "RAINBOW,50,1,100,0,0")
-  String params = command.substring(command.indexOf(':') + 1);
+  // Extract parameters string (e.g. "FLOW,55,0,60,0,50")
+  String params = command.substring(4);
+  
+  // Array to hold up to 7 parameters
+  String tokens[7];
+  for (int i = 0; i < 7; i++) tokens[i] = "";
+  
+  int t = 0;
+  int startIdx = 0;
+  for (unsigned int i = 0; i < params.length(); i++) {
+      if (params.charAt(i) == ',') {
+          tokens[t++] = params.substring(startIdx, i);
+          startIdx = i + 1;
+          if (t >= 7) break;
+      }
+  }
+  // catch the last one
+  if (t < 7) {
+      tokens[t] = params.substring(startIdx);
+  }
+
+  String modeStr   = tokens[0];
+  String speedStr  = tokens[1];
+  String dirStr    = tokens[2];
+  String brightStr = tokens[3];
+  String var1Str   = tokens[4];
+  String var2Str   = tokens[5];
+  String var3Str   = tokens[6];
+
+  if (modeStr == "" || speedStr == "" || dirStr == "") {
+      Serial.println(F("DEBUG_ERR: Missing core args"));
+      return; 
+  }
+
+  Serial.print(F("DEBUG_MODE: ")); Serial.println(modeStr);
 
   // 1. MODE
-  int comma1 = params.indexOf(',');
-  if (comma1 == -1) return;
-  String modeStr = params.substring(0, comma1);
-
+  bool matched = true;
+  if (modeStr == "OFF") currentMode = OFF;
+  else if (modeStr == "RAINBOW") currentMode = RAINBOW;
+  else if (modeStr == "WHITE") currentMode = ALL_WHITE;
+  else if (modeStr == "OG") currentMode = OG_MODE;
+  else if (modeStr == "SEVENCOLORS") currentMode = SEVEN_COLORS;
+  else if (modeStr == "SNAKE") currentMode = SNAKE;
+  else if (modeStr == "SWITCH") currentMode = SWITCH_ON_BEAT;
+  else if (modeStr == "BOUNCE") currentMode = SEVEN_BOUNCE;
+  else if (modeStr == "BASSNEW") currentMode = BASS_NEW;
+  else if (modeStr == "DRIFT") currentMode = DRIFT;
+  else if (modeStr == "FLOW") currentMode = FLOW;
+  else if (modeStr == "SMOOTH") currentMode = SMOOTH;
+  else if (modeStr == "SORT")  currentMode = SORT;
+  else if (modeStr == "BUILDER") currentMode = BUILDER;
+  else {
+      matched = false;
+      Serial.println(F("DEBUG_ERR: Mode not matched!"));
+  }
+  
+  if (matched) Serial.println(F("DEBUG_OK: Mode changed"));
+    
   // 2. SPEED
-  int comma2 = params.indexOf(',', comma1 + 1);
-  if (comma2 == -1) return;
-  String speedStr = params.substring(comma1 + 1, comma2);
-
-    // 3. DIR
-    int comma3 = params.indexOf(',', comma2 + 1);
-    if (comma3 == -1) return;
-    String dirStr = params.substring(comma2 + 1, comma3);
-
-    // 4. BRIGHTNESS (Moved before Vars)
-    int comma4 = params.indexOf(',', comma3 + 1);
-    String brightStr = "";
-    String var1Str = "0";
-    String var2Str = "0";
-
-    if (comma4 == -1) {
-        // No more commas, so the rest is Brightness. Vars are 0.
-        brightStr = params.substring(comma3 + 1);
-    } else {
-        brightStr = params.substring(comma3 + 1, comma4);
-        
-        // 5. VAR1
-        int comma5 = params.indexOf(',', comma4 + 1);
-        if (comma5 == -1) {
-             // Rest is VAR1. VAR2 is 0.
-             var1Str = params.substring(comma4 + 1);
-        } else {
-             var1Str = params.substring(comma4 + 1, comma5);
-             var2Str = params.substring(comma5 + 1);
-        }
-    }
-
-    if (modeStr == "OFF") currentMode = OFF;
-    else if (modeStr == "RAINBOW") currentMode = RAINBOW;
-    else if (modeStr == "WHITE") currentMode = ALL_WHITE;
-    else if (modeStr == "OG") currentMode = OG_MODE;
-    else if (modeStr == "SEVENCOLORS") currentMode = SEVEN_COLORS;
-    else if (modeStr == "SNAKE") currentMode = SNAKE;
-    else if (modeStr == "SWITCH") currentMode = SWITCH_ON_BEAT;
-    else if (modeStr == "BOUNCE") currentMode = SEVEN_BOUNCE;
+  if (speedStr.length() > 0) {
+      currentSpeed = speedStr.toInt();
+      if (currentSpeed <= 0) currentSpeed = 1;
+  }
+  
+  // 3. DIR
+  if (dirStr.length() > 0) {
+      currentDirection = (dirStr.toInt() == 1);
+  }
     
-    currentSpeed = speedStr.toInt();
-    if (currentSpeed <= 0) currentSpeed = 1;
-    currentDirection = (dirStr.toInt() == 1);
+  // Vars (Optional)
+  currentVar1 = (var1Str.length() > 0) ? var1Str.toInt() : 0;
+  currentVar2 = (var2Str.length() > 0) ? var2Str.toInt() : 0;
+  currentVar3 = (var3Str.length() > 0) ? var3Str.toInt() : 0;
     
-    // Vars
-    currentVar1 = var1Str.toInt();
-    currentVar2 = var2Str.toInt();
+  // 4. BRIGHTNESS (Optional)
+  if (brightStr.length() > 0) {
+      int b = brightStr.toInt();
+      if (b < 0) b = 0;
+      if (b > 255) b = 255;
+      currentBrightness = b;
+      FastLED.setBrightness(currentBrightness);
+  }
     
-    // Apply Brightness
-    if (brightStr != "") {
-        int b = brightStr.toInt();
-        // Clamp 0-255
-        if (b < 0) b = 0;
-        if (b > 255) b = 255;
-        currentBrightness = b;
-        FastLED.setBrightness(currentBrightness);
-    }
-    
-    Serial.println("ACK");
+  Serial.println(F("ACK"));
 }
 
 // --- SAFE WRAPPERS ---

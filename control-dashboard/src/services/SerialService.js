@@ -46,8 +46,8 @@ class SerialService {
      * Queues a configuration command.
      * The actual sending is handled by processQueue when tokens/acks allow.
      */
-    async sendConfig(mode, speed, dir, brightness = 60, var1 = 0, var2 = 0) {
-        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2}`;
+    async sendConfig(mode, speed, dir, brightness = 60, var1 = 0, var2 = 0, var3 = 0) {
+        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2},${var3}`;
         console.log("Queuing Command:", command);
         this.commandQueue.push(command);
         if (this.commandQueue.length > 2) this.commandQueue.shift();

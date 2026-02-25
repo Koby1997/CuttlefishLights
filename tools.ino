@@ -227,8 +227,9 @@ void readSpectrum()
         totalAmp += band[i];
     }
 
-    recentValues[recentCount] = totalAmp;
-    recentCount == 49 ? recentCount = 0 : recentCount++;
+    // EMA Optimization: replaces [20] int array and 50-iteration loop.
+    // Smoothing factor sets how fast it adapts. New = 10% new + 90% old.
+    emaAmplitude = (totalAmp * 10 + emaAmplitude * 90) / 100;
 
     setSensitivity();
 
@@ -254,26 +255,14 @@ void readSpectrum()
 
 
 /*
- * So this is my answer to the Sensitivity issue right now. Basically
- * we keep track of the 50 most recent readings from the spectrum.
- * We are reading from all 7 bands.
- * Then we find the average of those readings and we make the sensitivity
- * a little higher. We want it higher because we want specific actions to take
- * place when they hit harder, not when they are average.
- * To find the average we need to divide by 350 because we are reading
- * 50 integers from 7 different bands (7*50 is 350). We want the average
- * for one band.
+ * Sensitivity uses an Exponential Moving Average of total amplitude across all 7 bands.
+ * We multiply by 2 (or divide by 3.5 depending on math) to make sensitivity a little higher
+ * than average so specific actions trigger on hard hits, not average noise.
+ * Original math: (sum of 50 totalAmps / 350) * 2
+ * Which simplifies to: (average totalAmp / 7) * 2 = average totalAmp * (2/7) = average totalAmp * 0.28
  */
-void setSensitivity()//sensitivity for first 50 readings will be weird
+void setSensitivity()
 {
-    long numerator = 0;
-    int max = 0;
-    for(int i = 0; i < 50; i++)
-    {
-        max < recentValues[i] ? max = recentValues[i] : NULL;
-        numerator += recentValues[i];
-    }
-
-    sensitivity = (numerator / 350) * 2;//higher than average, but not too high. After testing this seems to work.
-    //kinda weird at really low volumes, but actually works pretty good.
+    // Make sensitivity ~28% of the EMA total amplitude to match original behavior
+    sensitivity = (emaAmplitude * 2) / 7; 
 }
