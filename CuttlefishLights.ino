@@ -10,7 +10,7 @@ CRGB leds[NUM_LEDS];
 uint8_t colors[NUM_LEDS]; // Memory Isolation Test: Commented out to save 300 bytes
 
 CRGB bassColor = CRGB(0,0,0); //used for some behaviors that use random colors
-uint16_t emaAmplitude = 0;    // Optimization: Replaces recentValues[20] array (Saves 40 bytes)
+long emaAmplitude = 0;    // Optimization: Replaces recentValues[20] array (Saves 40 bytes)
 long sensitivity;
 bool aboveSensitivity;
 
@@ -20,7 +20,7 @@ int reset = 5;
 int audio1 = A0;
 int audio2 = A1;
 int lightDelay = A2;
-uint16_t band[7];
+int band[7];
 
 // Serial Communication
 long lastSerialCheck = 0;
@@ -28,7 +28,7 @@ long lastSerialCheck = 0;
 // State Machine
 enum BehaviorMode {
   OFF,
-  ALL_WHITE,
+  SOLID_COLOR,
   RAINBOW,
   OG_MODE,
   SEVEN_COLORS,
@@ -40,7 +40,8 @@ enum BehaviorMode {
   FLOW,
   SMOOTH,
   SORT,
-  BUILDER
+  BUILDER,
+  MEGA_BOUNCE
 };
 
 BehaviorMode currentMode = RAINBOW; // Default behavior
@@ -50,10 +51,13 @@ BehaviorMode currentMode = RAINBOW; // Default behavior
 int currentSpeed = 15; // Raw UI speed slider value
 
 int currentBrightness = 128; // 50%
-bool currentDirection = false; // true = forward, false = backward
+int currentDirection = 1;
 int currentVar1 = 20; // Density
 int currentVar2 = 50; // Generic Variable 2
 int currentVar3 = 0;  // Generic Variable 3 (Used for B in RGB)
+int currentR = 255;
+int currentG = 255;
+int currentB = 255;
 BehaviorMode lastMode = OFF; // Track mode changes for optimization
 
 //State variables for non-blocking functions
@@ -65,9 +69,9 @@ void clearLeds();
 void safeDelay(int ms);
 void safeShow();
 
-void OGTick(bool forward);
+void OGTick(bool forward, int speed);
 void rainbowTick(bool forward, int speed);
-void sevenColorsTick(bool forward);
+void sevenColorsTick(bool forward, int speed);
 void switchOnBeatTick();
 void snakeTick(bool forward, int speed);
 void sevenBounceTick();
@@ -77,6 +81,7 @@ void colorFlowTick(bool forward, int speed);
 void smoothTick(bool forward, int speed);
 void sortTick();
 void builderTick(bool forward, int speed);
+void megaBounceTick(int dirState, int speed);
 
 // FastLED Wrapper Functions
 void moveLights(bool forward);
@@ -121,10 +126,10 @@ void loop() {
       safeShow();
       safeDelay(50); // Refresh at 20fps to ensure state but mostly listen
       break;
-    case ALL_WHITE:
+    case SOLID_COLOR:
       // Simple static assignment, doing it once or repeatedly is fine (repeatedly uses power but ensures state)
        // Optimization: only set if changed, but for now simple is robust
-      fill_solid(leds, NUM_LEDS, CRGB(currentVar1, currentVar2, currentVar3));
+      fill_solid(leds, NUM_LEDS, CRGB(currentR, currentG, currentB));
       safeShow();
       safeDelay(50); // Refresh at 20fps to ensure state but mostly listen
       break;
@@ -132,10 +137,10 @@ void loop() {
        rainbowTick(currentDirection, currentSpeed);
        break;
     case OG_MODE:
-       OGTick(currentDirection);
+       OGTick(currentDirection, currentSpeed);
        break;
     case SEVEN_COLORS:
-       sevenColorsTick(currentDirection);
+       sevenColorsTick(currentDirection, currentSpeed);
        break;
     case SWITCH_ON_BEAT:
        switchOnBeatTick();
@@ -163,6 +168,10 @@ void loop() {
        break;
     case BUILDER:
        builderTick(currentDirection, currentSpeed);
+       break;
+    case MEGA_BOUNCE:
+       // Mega Bounce has a 3-way direction toggle (0=Backward, 1=Forward, 2=Center-Out)
+       megaBounceTick(currentDirection, currentSpeed);
        break;
     // Add other cases here as we refactor them
     default:
@@ -214,58 +223,73 @@ void handleSerial() {
   }
 }
 
-void parseCommand(String command) {
+void parseCommand(String& command) {
   command.trim();
-  Serial.print(F("DEBUG_RX: '"));
-  Serial.print(command);
-  Serial.println(F("'"));
+  // Serial.print(F("DEBUG_RX: '"));
+  // Serial.print(command);
+  // Serial.println(F("'"));
 
   if (!command.startsWith("SET:")) {
-      Serial.println(F("DEBUG_ERR: No SET: prefix"));
+      // Serial.println(F("DEBUG_ERR: No SET: prefix"));
       return; 
   }
   
-  // Extract parameters string (e.g. "FLOW,55,0,60,0,50")
-  String params = command.substring(4);
-  
-  // Array to hold up to 7 parameters
-  String tokens[7];
-  for (int i = 0; i < 7; i++) tokens[i] = "";
-  
+  int startIdx = 4; // Skip "SET:"
   int t = 0;
-  int startIdx = 0;
-  for (unsigned int i = 0; i < params.length(); i++) {
-      if (params.charAt(i) == ',') {
-          tokens[t++] = params.substring(startIdx, i);
-          startIdx = i + 1;
-          if (t >= 7) break;
+  
+  String modeStr = "";
+  
+  while (startIdx < command.length() && t < 10) {
+      int commaIdx = command.indexOf(',', startIdx);
+      String token;
+      if (commaIdx == -1) {
+          token = command.substring(startIdx);
+          startIdx = command.length();
+      } else {
+          token = command.substring(startIdx, commaIdx);
+          startIdx = commaIdx + 1;
       }
-  }
-  // catch the last one
-  if (t < 7) {
-      tokens[t] = params.substring(startIdx);
+      
+      if (t == 0) {
+          modeStr = token;
+      } else if (t == 1 && token.length() > 0) {
+          currentSpeed = token.toInt();
+          if (currentSpeed <= 0) currentSpeed = 1;
+      } else if (t == 2 && token.length() > 0) {
+          currentDirection = token.toInt();
+      } else if (t == 3 && token.length() > 0) {
+          int b = token.toInt();
+          if (b < 0) b = 0;
+          if (b > 255) b = 255;
+          currentBrightness = b;
+          FastLED.setBrightness(currentBrightness);
+      } else if (t == 4 && token.length() > 0) {
+          currentVar1 = token.toInt();
+      } else if (t == 5 && token.length() > 0) {
+          currentVar2 = token.toInt();
+      } else if (t == 6 && token.length() > 0) {
+          currentVar3 = token.toInt();
+      } else if (t == 7 && token.length() > 0) {
+          currentR = token.toInt();
+      } else if (t == 8 && token.length() > 0) {
+          currentG = token.toInt();
+      } else if (t == 9 && token.length() > 0) {
+          currentB = token.toInt();
+      }
+      t++;
   }
 
-  String modeStr   = tokens[0];
-  String speedStr  = tokens[1];
-  String dirStr    = tokens[2];
-  String brightStr = tokens[3];
-  String var1Str   = tokens[4];
-  String var2Str   = tokens[5];
-  String var3Str   = tokens[6];
-
-  if (modeStr == "" || speedStr == "" || dirStr == "") {
-      Serial.println(F("DEBUG_ERR: Missing core args"));
+  if (modeStr == "") {
+      // Serial.println(F("DEBUG_ERR: Missing core args"));
       return; 
   }
 
-  Serial.print(F("DEBUG_MODE: ")); Serial.println(modeStr);
+  // Serial.print(F("DEBUG_MODE: ")); Serial.println(modeStr);
 
-  // 1. MODE
   bool matched = true;
   if (modeStr == "OFF") currentMode = OFF;
   else if (modeStr == "RAINBOW") currentMode = RAINBOW;
-  else if (modeStr == "WHITE") currentMode = ALL_WHITE;
+  else if (modeStr == "SOLID") currentMode = SOLID_COLOR;
   else if (modeStr == "OG") currentMode = OG_MODE;
   else if (modeStr == "SEVENCOLORS") currentMode = SEVEN_COLORS;
   else if (modeStr == "SNAKE") currentMode = SNAKE;
@@ -277,39 +301,15 @@ void parseCommand(String command) {
   else if (modeStr == "SMOOTH") currentMode = SMOOTH;
   else if (modeStr == "SORT")  currentMode = SORT;
   else if (modeStr == "BUILDER") currentMode = BUILDER;
+  else if (modeStr == "MEGABOUNCE") currentMode = MEGA_BOUNCE;
   else {
       matched = false;
-      Serial.println(F("DEBUG_ERR: Mode not matched!"));
+      // Serial.println(F("DEBUG_ERR: Mode not matched!"));
   }
   
-  if (matched) Serial.println(F("DEBUG_OK: Mode changed"));
+  // if (matched) Serial.println(F("DEBUG_OK: Mode changed"));
     
-  // 2. SPEED
-  if (speedStr.length() > 0) {
-      currentSpeed = speedStr.toInt();
-      if (currentSpeed <= 0) currentSpeed = 1;
-  }
-  
-  // 3. DIR
-  if (dirStr.length() > 0) {
-      currentDirection = (dirStr.toInt() == 1);
-  }
-    
-  // Vars (Optional)
-  currentVar1 = (var1Str.length() > 0) ? var1Str.toInt() : 0;
-  currentVar2 = (var2Str.length() > 0) ? var2Str.toInt() : 0;
-  currentVar3 = (var3Str.length() > 0) ? var3Str.toInt() : 0;
-    
-  // 4. BRIGHTNESS (Optional)
-  if (brightStr.length() > 0) {
-      int b = brightStr.toInt();
-      if (b < 0) b = 0;
-      if (b > 255) b = 255;
-      currentBrightness = b;
-      FastLED.setBrightness(currentBrightness);
-  }
-    
-  Serial.println(F("ACK"));
+  Serial.println(F("ACK")); // Keep ACK so React dashboard keeps sending slider changes seamlessly
 }
 
 // --- SAFE WRAPPERS ---

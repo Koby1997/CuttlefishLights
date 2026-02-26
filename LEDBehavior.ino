@@ -83,7 +83,7 @@ void switchOnBeatTick() {
   }
 }
 
-void OGTick(bool forward) {
+void OGTick(bool forward, int speed) {
   int start;
   forward ? start = 0 : start = NUM_LEDS - 1;
   moveLights(forward);
@@ -104,10 +104,10 @@ void OGTick(bool forward) {
     leds[start] = CRGB(75,125,0); //yellowish
 
   safeShow();
-  safeDelay(20); // Maintain original pacing
+  safeDelay(speed); // Maintain user-defined pacing
 }
 
-void sevenColorsTick(bool forward) {
+void sevenColorsTick(bool forward, int speed) {
   int start;
   forward ? start = 0 : start = NUM_LEDS - 1;
   moveLights(forward);
@@ -116,7 +116,7 @@ void sevenColorsTick(bool forward) {
   leds[start] = lightSwitch(highestBand());
   
   safeShow();
-  safeDelay(20);
+  safeDelay(speed);
 }
 
 void snakeTick(bool forward, int speed) {
@@ -221,41 +221,52 @@ void sevenBounceTick() {
   readSpectrum();
   int sectionlength = NUM_LEDS / 7;
 
-  // Response (1-100) → decay speed. 1=Smooth (slow decay), 100=Snappy (fast decay).
+  // Response (1-100) -> 1=Floaty (0.95), 100=Snappy (0.50)
   float response = constrain(currentVar2, 1, 100);
+
+  // DEBUGGING VARS
+  static int debugCounter = 0;
+  bool shouldLog = (debugCounter % 5 == 0); // Log 1 in every 5 frames to prevent serial clog
+  debugCounter++;
 
   if (currentVar1 == 1) {
     // --- FADE MODE ---
-    // fadeKeep: how much brightness survives each tick (0.7=fast, 0.997=very slow)
-    float fadeKeep = 1.0 - (response / 100.0) * 0.3;
+    float fadeKeep = map((int)response, 1, 100, 95, 70) / 100.0;
+    static float fadeLevel[7] = {0,0,0,0,0,0,0};
 
     for (int section = 0; section < 7; section++) {
       int start = (section * sectionlength) + section;
       int end   = start + sectionlength;
 
-      if (isLightHit(section)) {
-        // Snap to full color instantly on a hit
-        for (int i = start; i < end && i < NUM_LEDS; i++) {
-          leds[i] = lightSwitch(section);
-        }
+      float temp = 0;
+      if (sensitivity > 0) {
+        temp = constrain((float)band[section] / ((float)sensitivity * 0.75), 0.0, 1.0);
+      }
+
+      // Snap to target if higher, otherwise decay
+      if (temp > fadeLevel[section]) {
+        fadeLevel[section] = temp;
       } else {
-        // Decay at rate controlled by Response
-        for (int i = start; i < end && i < NUM_LEDS; i++) {
-          leds[i].r = leds[i].r * fadeKeep;
-          leds[i].g = leds[i].g * fadeKeep;
-          leds[i].b = leds[i].b * fadeKeep;
-        }
+        fadeLevel[section] = fadeLevel[section] * fadeKeep;
+      }
+
+      CRGB baseColor = lightSwitch(section);
+      baseColor.r = baseColor.r * fadeLevel[section];
+      baseColor.g = baseColor.g * fadeLevel[section];
+      baseColor.b = baseColor.b * fadeLevel[section];
+
+      for (int i = start; i < end && i < NUM_LEDS; i++) {
+        leds[i] = baseColor;
       }
     }
 
   } else {
     // --- BOUNCE MODE ---
-    // Instant attack: lit count jumps up to target immediately.
-    // Controlled decay: lit count falls by `decayPerTick` LEDs each frame.
     static float litCount[7] = {0, 0, 0, 0, 0, 0, 0};
+    // 1 = smooth (0.95 multiplier), 100 = snappy (0.50 multiplier)
+    float smoothingFactor = map((int)response, 1, 100, 95, 50) / 100.0;
 
-    // 1 = slow fall (smooth), 100 = fast fall (snappy)
-    float decayPerTick = 0.1 + (response / 100.0) * 0.9;
+    float tLits[7] = {0,0,0,0,0,0,0};
 
     for (int i = 0; i < 7; i++) {
       float targetLit = 0;
@@ -263,11 +274,13 @@ void sevenBounceTick() {
         float temp = (float)band[i] / (float)sensitivity;
         targetLit = constrain(temp * sectionlength, 0.0, (float)sectionlength);
       }
+      
+      tLits[i] = targetLit;
 
-      if (targetLit >= litCount[i]) {
+      if (targetLit > litCount[i]) {
         litCount[i] = targetLit; // Jump up instantly on a hit
       } else {
-        litCount[i] = max(litCount[i] - decayPerTick, targetLit); // Decay
+        litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
       }
 
       int start  = (i * sectionlength) + i;
@@ -280,6 +293,18 @@ void sevenBounceTick() {
       for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
         leds[j] = CRGB(0, 0, 0);
       }
+    }
+
+    if (shouldLog) {
+      Serial.print(F("[DEBUG_BOUNCE] Sens:"));
+      Serial.print(sensitivity);
+      Serial.print(F(" | Raw Bands: "));
+      for(int i=0; i<7; i++) { Serial.print(band[i]); Serial.print(F(",")); }
+      Serial.print(F(" | Targets: "));
+      for(int i=0; i<7; i++) { Serial.print(tLits[i], 1); Serial.print(F(",")); }
+      Serial.print(F(" | Lits: "));
+      for(int i=0; i<7; i++) { Serial.print(litCount[i], 1); Serial.print(F(",")); }
+      Serial.println();
     }
 
     // White separators between sections
@@ -414,6 +439,118 @@ void colorFlowTick(bool forward, int speed) {
     leds[NUM_LEDS - 1] = CRGB(r, g, b);
   }
 
+  safeShow();
+  safeDelay(speed);
+}
+
+void megaBounceTick(int dirState, int speed) {
+  static float smoothedCount = 0;
+  
+  // 1. Calculate Amplitude based on Sensitivity/Source (VAR1)
+  readSpectrum();
+  float rawAmplitude = 0;
+  
+  if (currentVar1 == 0) {
+    // Punch Mode: Bass only (Isolated to Band 0 for kicks)
+    rawAmplitude = band[0];
+  } else {
+    // Meter Mode: Top 4 Loudest Bands Average (Fixed Ceiling)
+    // Find the 4 highest amplitude bands to prevent quiet frequencies from dragging the average down.
+    int top4[4] = {0, 0, 0, 0};
+    for (int i = 0; i < 7; i++) {
+      if (band[i] > top4[0]) {
+        top4[3] = top4[2];
+        top4[2] = top4[1];
+        top4[1] = top4[0];
+        top4[0] = band[i];
+      } else if (band[i] > top4[1]) {
+        top4[3] = top4[2];
+        top4[2] = top4[1];
+        top4[1] = band[i];
+      } else if (band[i] > top4[2]) {
+        top4[3] = top4[2];
+        top4[2] = band[i];
+      } else if (band[i] > top4[3]) {
+        top4[3] = band[i];
+      }
+    }
+    rawAmplitude = (top4[0] + top4[1] + top4[2] + top4[3]) / 4.0;
+  }
+  
+  // 2. Map Amplitude to Target LED Count
+  // dirState == 2 means Center-Out, so the max distance is half the strip size
+  int maxLeds = (dirState == 2) ? (NUM_LEDS / 2) : NUM_LEDS;
+  
+  // Ceiling Logic
+  float targetCount = 0;
+  if (currentVar1 == 0) {
+    // Punch Mode: Uses Sensitivity * 2 multiplier to handle aggressively mastered low-end kicks
+    float bounceCeiling = (sensitivity > 0) ? (sensitivity * 2.0) : 900.0;
+    targetCount = constrain((rawAmplitude / bounceCeiling) * maxLeds, 0.0, (float)maxLeds);
+  } else {
+    // Meter Mode: Uses a fixed hardware ceiling (1023 max, dialed to 1000 for visual punch)
+    targetCount = map(constrain(rawAmplitude, 0, 1000), 0, 1000, 0, maxLeds);
+  }
+  
+  // 3. Gravity/Smoothing (VAR3)
+  // currentVar3 maps directly from the UI Response Slider (capped at 50 for Mega Bounce)
+  // Reversed: 50 = Snappy (0.50 smoothing), 1 = Floaty (0.99 smoothing)
+  float smoothingFactor = (100.0 - currentVar3) / 100.0;
+
+  // To avoid getting completely stuck, ensure a minimum drop
+  if (targetCount > smoothedCount) {
+    // Attack is always fast
+    smoothedCount = targetCount;
+  } else {
+    // Decay is governed by gravity/smoothing
+    // E.g., if factor is 0.9, it keeps 90% of old value (falls slowly)
+    smoothedCount = (smoothedCount * smoothingFactor) + (targetCount * (1.0 - smoothingFactor));
+    // Apply a minimum physical gravity drop so it eventually hits 0
+    smoothedCount -= 0.5;
+  }
+  if (smoothedCount < 0) smoothedCount = 0;
+  
+  int activeCount = (int)smoothedCount;
+  
+  // 4. Painting the Strip
+  fill_solid(leds, NUM_LEDS, CRGB::Black); // Clear canvas
+  
+  for (int i = 0; i < activeCount; i++) {
+    // Calculate Color
+    CRGB pixelColor;
+    if (currentVar2 == 0) {
+      // Classic Rainbow Map (Green Base -> Yellow -> Red Peak)
+      // Map i relative to maxLeds
+      uint8_t hue = map(i, 0, maxLeds, 96, 0); // 96 is roughly Green, 0 is Red in FastLED
+      pixelColor = CHSV(hue, 255, 255);
+    } else if (currentVar2 == 2) {
+      // Custom Solid Color via HEX Picker (parsed via trailing Tokens 7,8,9 into currentR/G/B)
+      pixelColor = CRGB(currentR, currentG, currentB);
+    } else {
+      // Style 3: Full-Spectrum Rainbow
+      // Maps the entire 0-255 FastLED hue circle across the active bounce
+      uint8_t hue = map(i, 0, maxLeds, 0, 255);
+      pixelColor = CHSV(hue, 255, 255);
+    }
+    
+    // Plot based on Direction
+    if (dirState == 1) {
+      // Forward
+      leds[i] = pixelColor;
+    } else if (dirState == 0) {
+      // Backward
+      int index = (NUM_LEDS - 1) - i;
+      if (index >= 0 && index < NUM_LEDS) leds[index] = pixelColor;
+    } else if (dirState == 2) {
+      // Center-Out
+      int center = NUM_LEDS / 2;
+      int leftIdx = center - 1 - i;
+      int rightIdx = center + i;
+      if (leftIdx >= 0) leds[leftIdx] = pixelColor;
+      if (rightIdx < NUM_LEDS) leds[rightIdx] = pixelColor;
+    }
+  }
+  
   safeShow();
   safeDelay(speed);
 }

@@ -229,28 +229,11 @@ void readSpectrum()
 
     // EMA Optimization: replaces [20] int array and 50-iteration loop.
     // Smoothing factor sets how fast it adapts. New = 10% new + 90% old.
-    emaAmplitude = (totalAmp * 10 + emaAmplitude * 90) / 100;
+    // Explicitly cast to (long) and use 'L' literals because UNO uses 16-bit ints,
+    // and totalAmp*100 easily overflows 32,767, crushing sensitivity to 0.
+    emaAmplitude = ((long)totalAmp * 10L + emaAmplitude * 90L) / 100L;
 
     setSensitivity();
-
-    //Saved for testing purposes. I hate when I have to write all of this out haha
-    // Serial.println("These are the the bands: ");
-    // Serial.print("Band 0:  ");
-    // Serial.print(band[0]);
-    // Serial.print("   Band1:  ");
-    // Serial.print(band[1]);
-    // Serial.print("   Band1:  ");
-    // Serial.print(band[2]);
-    // Serial.print("   Band3:  ");
-    // Serial.print(band[3]);
-    // Serial.print("   Band4:  ");
-    // Serial.print(band[4]);
-    // Serial.print("   Band5:  ");
-    // Serial.print(band[5]);
-    // Serial.print("   Band6:  ");
-    // Serial.print(band[6]);
-    // Serial.print("  Sensitivity:  ");
-    // Serial.println(sensitivity);
 }
 
 
@@ -265,4 +248,11 @@ void setSensitivity()
 {
     // Make sensitivity ~28% of the EMA total amplitude to match original behavior
     sensitivity = (emaAmplitude * 2) / 7; 
+    
+    // Add a strict noise floor minimum. 
+    // When music is paused, raw MSGEQ7 noise float can plummet sensitivity to near 0,
+    // which causes division-by-tiny-number blowouts, rendering the strip fully lit on pure static.
+    if (sensitivity < 60) {
+        sensitivity = 60;
+    }
 }
