@@ -28,8 +28,18 @@ function App() {
       id: "OG",
       title: "React: OG",
       icon: Music,
-      desc: "The original audio-reactive mode. Pulses with the beat.",
-      hasSpeed: false,
+      desc: (
+        <div className="space-y-2">
+          <p>The original audio-reactive mode. Pulses with the beat.</p>
+          <ul className="list-disc ml-5 text-sm text-zinc-500 font-mono">
+            <li>Bass note = <span className="text-red-500 font-bold">Red</span></li>
+            <li>Middle notes = <span className="text-green-500 font-bold">Green</span></li>
+            <li>High notes = <span className="text-blue-500 font-bold">Blue</span></li>
+            <li>No specific note hitting = <span className="text-yellow-500 font-bold">Yellow</span></li>
+          </ul>
+        </div>
+      ),
+      hasSpeed: true,
       hasDirection: true,
       hasBrightness: true,
       category: "Music-Reactive"
@@ -48,8 +58,21 @@ function App() {
       id: "SEVENCOLORS",
       title: "Seven Colors",
       icon: Disc,
-      desc: "Cycles through 7 distinct colors with hard transitions.",
-      hasSpeed: false,
+      desc: (
+        <div className="space-y-2">
+          <p>Cycles through 7 distinct colors based on the dominant audio frequency.</p>
+          <ul className="ml-5 text-sm text-zinc-500 font-mono list-disc">
+            <li>Band 1 (Sub) = <span className="text-red-500 font-bold">Red</span></li>
+            <li>Band 2 (Bass) = <span className="text-orange-500 font-bold">Orange</span></li>
+            <li>Band 3 (Low Mid) = <span className="text-yellow-500 font-bold">Yellow</span></li>
+            <li>Band 4 (Mid) = <span className="text-green-500 font-bold">Green</span></li>
+            <li>Band 5 (High Mid) = <span className="text-blue-500 font-bold">Blue</span></li>
+            <li>Band 6 (Treble) = <span className="text-purple-500 font-bold">Purple</span></li>
+            <li>Band 7 (Air) = <span className="text-pink-500 font-bold">Pink</span></li>
+          </ul>
+        </div>
+      ),
+      hasSpeed: true,
       hasDirection: true,
       hasBrightness: true,
       category: "Music-Reactive"
@@ -100,6 +123,19 @@ function App() {
       category: "Music-Reactive"
     },
     {
+      id: "MEGABOUNCE",
+      title: "Mega Bounce",
+      icon: Activity,
+      desc: "The entire strip acts as one massive, explosive volume meter.",
+      hasSpeed: false,
+      hasDirection: true, // Supports Forward, Backward, and Center-Out
+      hasBrightness: true,
+      hasSensitivityMode: true, // VAR1: 0=Bass(Punch), 1=All(Meter)
+      hasStyleMode: true,       // VAR2: 0=Classic, 1=Fever, 2=Solid
+      hasResponse: true,        // VAR3: Gravity smoothing
+      category: "Music-Reactive"
+    },
+    {
       id: "BASSNEW",
       title: "Bass Flow",
       icon: Activity, // Reusing Activity or Music icon
@@ -141,7 +177,7 @@ function App() {
       category: "Ambient & Flow"
     },
     {
-      id: "WHITE",
+      id: "SOLID",
       title: "Solid Color",
       icon: Sun,
       desc: "A solid, customizable static color of your choice.",
@@ -172,6 +208,7 @@ function App() {
   const [tempBrightness, setTempBrightness] = useState(128); // 0-255
   const [tempVar1, setTempVar1] = useState(20); // Generic Variable 1
   const [tempVar2, setTempVar2] = useState(50); // Generic Variable 2 (e.g. Response)
+  const [tempVar3, setTempVar3] = useState(0); // Generic Variable 3
   const [tempColor, setTempColor] = useState("#ffffff"); // Hex Color for Solid Color mode
 
   useEffect(() => {
@@ -203,6 +240,21 @@ function App() {
         setTempBrightness(255);
         setTempVar1(0); // 0 = Overwrite, 1 = Typewriter
         break;
+      case "OG":
+      case "SEVENCOLORS":
+        setTempSpeed(85); // 105 - 85 = 20ms delay
+        setDirection(1);
+        setTempBrightness(255);
+        setTempVar1(20);
+        break;
+      case "MEGABOUNCE":
+        setTempSpeed(50);
+        setDirection(2); // Center-Out
+        setTempBrightness(255);
+        setTempVar1(0); // Sensitivity: Bass
+        setTempVar2(0); // Style: Classic
+        setTempVar3(85); // Response: High Smoothing
+        break;
       // Other defaults will go here
       default:
         // Generic safe defaults
@@ -232,8 +284,12 @@ function App() {
 
     // Speed Logic:
     let delay;
-    if (mode.id === "RAINBOW") {
+    if (mode.id === "MEGABOUNCE") {
+      delay = 1; // Locked to 100/max speed minimum delay for visualizer precision
+    } else if (mode.id === "RAINBOW") {
       delay = tempSpeed; // Raw 1-100
+    } else if (mode.id === "OG" || mode.id === "SEVENCOLORS" || mode.id === "SNAKE" || mode.id === "BUILDER") {
+      delay = Math.max(1, 101 - tempSpeed);
     } else {
       // Invert for delay-based modes: 100 -> 5ms, 1 -> 100ms
       delay = mode.hasSpeed ? (105 - tempSpeed) : 50;
@@ -248,7 +304,9 @@ function App() {
     // VAR1 / VAR2 / VAR3
     let var1 = tempVar1;
     let var2 = tempVar2;
-    let var3 = 0;
+    let var3 = mode.id === "MEGABOUNCE" ? tempVar3 : 0;
+
+    let r = 0, g = 0, b = 0;
 
     // For Solid Color Mode, intercept vars and send RGB
     if (mode.hasColorPicker) {
@@ -256,10 +314,17 @@ function App() {
       var1 = parseInt(hex.substring(0, 2), 16); // R
       var2 = parseInt(hex.substring(2, 4), 16); // G
       var3 = parseInt(hex.substring(4, 6), 16); // B
+      // Also set r, g, b just in case
+      r = var1; g = var2; b = var3;
+    } else if (mode.id === "MEGABOUNCE" && tempVar2 === 2) {
+      const hex = tempColor.replace('#', '');
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
     }
 
     // Send the Single Unified Command
-    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3);
+    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3, r, g, b);
     setActiveMode(mode.id);
   };
 
@@ -467,6 +532,19 @@ function App() {
                   >
                     Backward
                   </button>
+                  {currentMode.id === "MEGABOUNCE" && (
+                    <button
+                      onClick={() => setDirection(2)}
+                      className={clsx(
+                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                        direction === 2
+                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                      )}
+                    >
+                      Center-Out
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -507,6 +585,69 @@ function App() {
               </div>
             )}
 
+            {/* Sensitivity Control (VAR1) */}
+            {currentMode.hasSensitivityMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <Activity size={16} className="text-orange-500" /> Sensitivity
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                  <button
+                    onClick={() => setTempVar1(0)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      tempVar1 === 0
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Punch (Bass)
+                  </button>
+                  <button
+                    onClick={() => setTempVar1(1)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      tempVar1 === 1
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Meter (All)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Response / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
+            {currentMode.hasResponse && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                    <ChevronRight size={16} className="text-orange-500" /> Response
+                  </label>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE") ? "10" : "100"}
+                  value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (currentMode.id === "MEGABOUNCE") setTempVar3(val);
+                    else setTempVar2(val);
+                  }}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Smooth</span>
+                  <span>Snappy</span>
+                </div>
+              </div>
+            )}
+
             {/* Sub-Mode Toggle (e.g. Bounce / Fade) */}
             {currentMode.hasSubMode && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
@@ -540,31 +681,35 @@ function App() {
               </div>
             )}
 
-            {/* Response / Smoothing Control (VAR2) */}
-            {currentMode.hasResponse && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <ChevronRight size={16} className="text-orange-500" /> Response
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {tempVar2}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={tempVar2}
-                  onChange={(e) => setTempVar2(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Smooth</span>
-                  <span>Snappy</span>
+            {/* Style Control (VAR2) */}
+            {currentMode.hasStyleMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <Palette size={16} className="text-orange-500" /> Color Style
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                  {[
+                    { label: "Classic", val: 0 },
+                    { label: "Custom Solid", val: 2 },
+                    { label: "Full Spectrum", val: 3 }
+                  ].map(({ label, val }) => (
+                    <button
+                      key={val}
+                      onClick={() => setTempVar2(val)}
+                      className={clsx(
+                        "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
+                        tempVar2 === val
+                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
+
 
             {/* Snake Color Style Selector (VAR2) */}
             {currentMode.hasSnakeMode && (
@@ -637,7 +782,7 @@ function App() {
             )}
 
             {/* Solid Color Picker */}
-            {currentMode.hasColorPicker && (
+            {(currentMode.hasColorPicker || (currentMode.id === "MEGABOUNCE" && tempVar2 === 2)) && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div>
                   <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
@@ -661,7 +806,12 @@ function App() {
                       const b = parseInt(hex.substring(4, 6), 16);
 
                       // Instantly activate and blast color to the strip
-                      serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b);
+                      if (currentMode.id === "MEGABOUNCE") {
+                        serialService.sendConfig(currentMode.id, 50, direction, tempBrightness, tempVar1, tempVar2, tempVar3, r, g, b);
+                      } else {
+                        serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b, r, g, b);
+                      }
+
                       if (activeMode !== currentMode.id) {
                         setActiveMode(currentMode.id);
                       }

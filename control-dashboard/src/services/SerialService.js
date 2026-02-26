@@ -46,9 +46,14 @@ class SerialService {
      * Queues a configuration command.
      * The actual sending is handled by processQueue when tokens/acks allow.
      */
-    async sendConfig(mode, speed, dir, brightness = 60, var1 = 0, var2 = 0, var3 = 0) {
-        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2},${var3}`;
-        console.log("Queuing Command:", command);
+    async sendConfig(mode, speed, dir, brightness, var1, var2, var3, r = 0, g = 0, b = 0) {
+        if (!this.isConnected || !this.writer) {
+            console.error("Cannot send: Not connected");
+            return;
+        }
+
+        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2},${var3},${r},${g},${b}`;
+        console.log(`Queueing command: ${command}`);
         this.commandQueue.push(command);
         if (this.commandQueue.length > 2) this.commandQueue.shift();
     }
@@ -92,6 +97,11 @@ class SerialService {
             } finally {
                 clearInterval(streamInterval); // STOP sending '?'
             }
+
+            // Flush: Give the OS and Arduino's 64-byte HardwareSerial RX buffer
+            // time to drain any residual '?' characters from the stream before 
+            // blasting the 42-byte command packet that would otherwise overflow it.
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             // 4. Send Full Command safely
             const fullPacket = '<' + command + '>';
