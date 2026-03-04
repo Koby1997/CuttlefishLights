@@ -40,7 +40,7 @@ enum BehaviorMode {
   FLOW,
   SMOOTH,
   SORT,
-  BUILDER,
+  PAINTBRUSH,
   MEGA_BOUNCE
 };
 
@@ -166,8 +166,8 @@ void loop() {
     case SORT:
        sortTick();
        break;
-    case BUILDER:
-       builderTick(currentDirection, currentSpeed);
+    case PAINTBRUSH:
+       paintbrushTick(currentDirection, currentSpeed);
        break;
     case MEGA_BOUNCE:
        // Mega Bounce has a 3-way direction toggle (0=Backward, 1=Forward, 2=Center-Out)
@@ -300,7 +300,7 @@ void parseCommand(String& command) {
   else if (modeStr == "FLOW") currentMode = FLOW;
   else if (modeStr == "SMOOTH") currentMode = SMOOTH;
   else if (modeStr == "SORT")  currentMode = SORT;
-  else if (modeStr == "BUILDER") currentMode = BUILDER;
+  else if (modeStr == "PAINTBRUSH") currentMode = PAINTBRUSH;
   else if (modeStr == "MEGABOUNCE") currentMode = MEGA_BOUNCE;
   else {
       matched = false;

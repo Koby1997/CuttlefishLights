@@ -4,7 +4,9 @@ import SortVisualizer from './components/SortVisualizer';
 import {
   Zap, Power, Activity, Disc, AlignJustify,
   Palette, Music, Waves, Wind, ArrowRightLeft, Sun,
-  LayoutDashboard, Settings, ChevronRight, Hammer
+  LayoutDashboard, Settings, ChevronRight, Hammer,
+  FastForward, Ruler, Blend, Paintbrush, Rocket, ChartColumn, Rainbow, Eclipse,
+  AlignEndHorizontal
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -15,8 +17,8 @@ function App() {
   const modes = [
     {
       id: "RAINBOW",
-      title: "Rainbow Flow",
-      icon: Palette,
+      title: "Rainbow",
+      icon: Rainbow,
       desc: "Smoothly cycling colors moving across the entire strip.",
       hasSpeed: true,
       hasDirection: true,
@@ -46,8 +48,8 @@ function App() {
     },
     {
       id: "SMOOTH",
-      title: "Band Blend",
-      icon: Disc,
+      title: "Music Blend",
+      icon: Blend,
       desc: "Bass drives red, mids drive green, highs drive blue — blended into a flowing color.",
       hasSpeed: true,
       hasDirection: true,
@@ -57,7 +59,7 @@ function App() {
     {
       id: "SEVENCOLORS",
       title: "Seven Colors",
-      icon: Disc,
+      icon: Palette,
       desc: (
         <div className="space-y-2">
           <p>Cycles through 7 distinct colors based on the dominant audio frequency.</p>
@@ -80,13 +82,61 @@ function App() {
     {
       id: "BOUNCE",
       title: "Seven Bounce",
-      icon: Activity,
+      icon: AlignEndHorizontal,
       desc: "Bouncing balls of light that react to frequency bands.",
       hasSpeed: false,
       hasDirection: false,
       hasBrightness: true,
       hasSubMode: true,  // 0 = Bounce, 1 = Fade
       hasResponse: true,  // Controls smoothing speed (var2)
+      category: "Music-Reactive"
+    },
+    {
+      id: "MEGABOUNCE",
+      title: "Mega Bounce",
+      icon: Rocket,
+      desc: "The entire strip acts as one massive, explosive volume meter.",
+      hasSpeed: false,
+      hasDirection: true, // Supports Forward, Backward, and Center-Out
+      hasBrightness: true,
+      hasSensitivityMode: true, // VAR1: 0=Bass(Punch), 1=All(Meter)
+      hasStyleMode: true,       // VAR2: 0=Classic, 1=Fever, 2=Solid
+      hasResponse: true,        // VAR3: Gravity smoothing
+      category: "Music-Reactive"
+    },
+
+    {
+      id: "SNAKE",
+      title: "Snake",
+      icon: Waves,
+      desc: "A single 'snake' of light that slithers based on audio intensity.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      hasDensity: true, // Mapped to VAR1 (Snake Length)
+      hasSnakeMode: true, // Mapped to VAR2 (Color Style)
+      category: "Music-Reactive"
+    },
+    {
+      id: "PAINTBRUSH",
+      title: "Paintbrush",
+      icon: Paintbrush,
+      desc: "A single pointer that permanently paints an audio-reactive canvas.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
+      hasSubMode: true, // Used for Typewriter vs Overwrite styles
+      category: "Music-Reactive"
+    },
+
+    {
+      id: "BASSNEW",
+      title: "Bass Flow",
+      icon: Activity, // Reusing Activity or Music icon
+      desc: "Colors flow down the strip, changing every time the bass hits.",
+      hasSpeed: true,
+      hasDirection: true,
+      hasBrightness: true,
       category: "Music-Reactive"
     },
     {
@@ -100,55 +150,9 @@ function App() {
       category: "Music-Reactive"
     },
     {
-      id: "SNAKE",
-      title: "Bio-Snake",
-      icon: Waves,
-      desc: "A single 'snake' of light that slithers based on audio intensity.",
-      hasSpeed: true,
-      hasDirection: true,
-      hasBrightness: true,
-      hasDensity: true, // Mapped to VAR1 (Snake Length)
-      hasSnakeMode: true, // Mapped to VAR2 (Color Style)
-      category: "Music-Reactive"
-    },
-    {
-      id: "BUILDER",
-      title: "Builder",
-      icon: Hammer,
-      desc: "A single pointer that permanently paints an audio-reactive canvas.",
-      hasSpeed: true,
-      hasDirection: true,
-      hasBrightness: true,
-      hasSubMode: true, // Used for Typewriter vs Overwrite styles
-      category: "Music-Reactive"
-    },
-    {
-      id: "MEGABOUNCE",
-      title: "Mega Bounce",
-      icon: Activity,
-      desc: "The entire strip acts as one massive, explosive volume meter.",
-      hasSpeed: false,
-      hasDirection: true, // Supports Forward, Backward, and Center-Out
-      hasBrightness: true,
-      hasSensitivityMode: true, // VAR1: 0=Bass(Punch), 1=All(Meter)
-      hasStyleMode: true,       // VAR2: 0=Classic, 1=Fever, 2=Solid
-      hasResponse: true,        // VAR3: Gravity smoothing
-      category: "Music-Reactive"
-    },
-    {
-      id: "BASSNEW",
-      title: "Bass Flow",
-      icon: Activity, // Reusing Activity or Music icon
-      desc: "Colors flow down the strip, changing every time the bass hits.",
-      hasSpeed: true,
-      hasDirection: true,
-      hasBrightness: true,
-      category: "Music-Reactive"
-    },
-    {
       id: "DRIFT",
       title: "Color Drift",
-      icon: Waves,
+      icon: Eclipse,
       desc: "The whole strip slowly fades between random colors.",
       hasSpeed: true,
       hasDirection: false,
@@ -168,7 +172,7 @@ function App() {
     {
       id: "SORT",
       title: "Sort Visualizer",
-      icon: AlignJustify,
+      icon: ChartColumn,
       desc: "Watch sorting algorithms rearrange scrambled colors in real time.",
       hasSpeed: true,
       hasDirection: true,
@@ -222,45 +226,81 @@ function App() {
     // Apply user-defined default aesthetics
     // (We will expand this map as we go through each mode with the user)
     switch (modeId) {
-      case "RAINBOW":
-        setTempSpeed(15);
+      case "OG":
+        setTempSpeed(100);
         setDirection(0); // Backward
-        setTempBrightness(128); // 50%
-        setTempVar1(20); // Density
+        setTempVar1(20);
+        break;
+      case "SMOOTH":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        break;
+      case "SEVENCOLORS":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        setTempVar1(20);
+        break;
+      case "BOUNCE":
+        setTempSpeed(50); // N/A
+        setDirection(1); // N/A
+        setTempVar1(0); // Style: Bounce
+        setTempVar2(1); // Response: 1
+        break;
+      case "MEGABOUNCE":
+        setTempSpeed(50); // N/A
+        setDirection(0); // Backward
+        setTempVar1(0); // Sensitivity: Bass
+        setTempVar2(0); // Style: Classic
+        setTempVar3(1); // Response: 1
         break;
       case "SNAKE":
         setTempSpeed(100);
         setDirection(0); // Backward
-        setTempBrightness(255); // Assuming max brightness is desired
-        setTempVar1(20); // Length of the snake
+        setTempVar1(50); // Length: 50
+        setTempVar2(1); // Color Style: Rainbow
         break;
-      case "BUILDER":
-        setTempSpeed(100); // Very fast sweeping
-        setDirection(1); // Forward
-        setTempBrightness(255);
-        setTempVar1(0); // 0 = Overwrite, 1 = Typewriter
+      case "PAINTBRUSH":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        setTempVar1(0); // Style: Overwrite (formerly called Black Out / Color Over depending on state)
         break;
-      case "OG":
-      case "SEVENCOLORS":
-        setTempSpeed(85); // 105 - 85 = 20ms delay
-        setDirection(1);
-        setTempBrightness(255);
-        setTempVar1(20);
+      case "BASSNEW":
+        setTempSpeed(100);
+        setDirection(0); // Backward
         break;
-      case "MEGABOUNCE":
+      case "SWITCH":
         setTempSpeed(50);
-        setDirection(2); // Center-Out
-        setTempBrightness(255);
-        setTempVar1(0); // Sensitivity: Bass
-        setTempVar2(0); // Style: Classic
-        setTempVar3(85); // Response: High Smoothing
+        setDirection(1);
         break;
-      // Other defaults will go here
+      case "RAINBOW":
+        setTempSpeed(15);
+        setDirection(0); // Backward
+        setTempVar1(20); // Density
+        break;
+      case "DRIFT":
+        setTempSpeed(100);
+        setDirection(1); // N/A
+        break;
+      case "FLOW":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        break;
+      case "SORT":
+        setTempSpeed(100);
+        setDirection(0); // Backward
+        setTempVar1(0); // Algorithm: Bubble
+        break;
+      case "SOLID":
+        setTempSpeed(50); // N/A
+        setDirection(1); // N/A
+        setTempColor("#ffffff");
+        break;
+      case "OFF":
+        break;
       default:
         // Generic safe defaults
         setTempSpeed(50);
         setDirection(1);
-        setTempBrightness(60);
         setTempVar1(0);
         setTempVar2(50);
         break;
@@ -346,9 +386,6 @@ function App() {
               Cuttlefish<span className="text-orange-400">Ctrl</span>
             </h1>
           </div>
-          <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest pl-11">
-            v2.2 // Sidebar Nav
-          </p>
         </div>
 
         {/* Global Controls & Connection */}
@@ -381,6 +418,7 @@ function App() {
 
             return (
               <div key={category} className="mb-6">
+                {category !== "Music-Reactive" && <hr className="border-zinc-800/60 mb-6 mx-2" />}
                 <div className="px-2 mb-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
                   {category}
                 </div>
@@ -393,7 +431,7 @@ function App() {
                     return (
                       <button
                         key={mode.id}
-                        onClick={() => setSelectedMode(mode.id)}
+                        onClick={() => handleModeSelect(mode.id)}
                         className={clsx(
                           "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
                           isSelected
@@ -450,32 +488,6 @@ function App() {
 
           {/* Controls Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-
-            {/* Speed Control */}
-            {currentMode.hasSpeed && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <Activity size={16} className="text-orange-500" /> Speed
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {tempSpeed}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={tempSpeed}
-                  onChange={(e) => setTempSpeed(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Slow</span>
-                  <span>Fast</span>
-                </div>
-              </div>
-            )}
 
             {/* Brightness Control */}
             {currentMode.hasBrightness && (
@@ -554,7 +566,11 @@ function App() {
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <Waves size={16} className="text-orange-500" />
+                    {currentMode.id === "SNAKE" ? (
+                      <Ruler size={16} className="text-orange-500" />
+                    ) : (
+                      <Waves size={16} className="text-orange-500" />
+                    )}
                     {currentMode.id === "SNAKE" ? "Snake Length" : "Density"}
                   </label>
                   <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
@@ -664,7 +680,7 @@ function App() {
                         : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
                     )}
                   >
-                    {currentMode.id === "BUILDER" ? "Overwrite" : "Bounce"}
+                    {currentMode.id === "PAINTBRUSH" ? "Overwrite" : "Bounce"}
                   </button>
                   <button
                     onClick={() => setTempVar1(1)}
@@ -675,7 +691,7 @@ function App() {
                         : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
                     )}
                   >
-                    {currentMode.id === "BUILDER" ? "Typewriter" : "Fade"}
+                    {currentMode.id === "PAINTBRUSH" ? "Black out" : "Fade"}
                   </button>
                 </div>
               </div>

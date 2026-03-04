@@ -184,7 +184,7 @@ void snakeTick(bool forward, int speed) {
   safeDelay(speed); 
 }
 
-void builderTick(bool forward, int speed) {
+void paintbrushTick(bool forward, int speed) {
   // A single pointer that runs down the strip, permanently painting the current color
   static int pointer = 0;
 
