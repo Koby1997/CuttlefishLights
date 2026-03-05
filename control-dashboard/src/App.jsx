@@ -83,7 +83,7 @@ function App() {
       id: "BOUNCE",
       title: "Seven Bounce",
       icon: AlignEndHorizontal,
-      desc: "Bouncing balls of light that react to frequency bands.",
+      desc: "Bouncing balls of light that react to frequency bands. The Red section is the lower bass notes all the way up to Pink which are the high notes. Following the chart in Seven Colors.",
       hasSpeed: false,
       hasDirection: false,
       hasBrightness: true,
@@ -121,7 +121,7 @@ function App() {
       id: "PAINTBRUSH",
       title: "Paintbrush",
       icon: Paintbrush,
-      desc: "A single pointer that permanently paints an audio-reactive canvas.",
+      desc: "A single pointer that permanently paints an audio-reactive canvas. This is Similar to the Seven Colors behavior, but it changes how the lights are shown.",
       hasSpeed: true,
       hasDirection: true,
       hasBrightness: true,
@@ -328,7 +328,7 @@ function App() {
       delay = 1; // Locked to 100/max speed minimum delay for visualizer precision
     } else if (mode.id === "RAINBOW") {
       delay = tempSpeed; // Raw 1-100
-    } else if (mode.id === "OG" || mode.id === "SEVENCOLORS" || mode.id === "SNAKE" || mode.id === "BUILDER") {
+    } else if (mode.id === "OG" || mode.id === "SEVENCOLORS" || mode.id === "SNAKE" || mode.id === "PAINTBRUSH") {
       delay = Math.max(1, 101 - tempSpeed);
     } else {
       // Invert for delay-based modes: 100 -> 5ms, 1 -> 100ms
@@ -488,6 +488,32 @@ function App() {
 
           {/* Controls Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+
+            {/* Speed Control */}
+            {currentMode.hasSpeed && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                    <FastForward size={16} className="text-orange-500" /> Speed
+                  </label>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {tempSpeed}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={tempSpeed}
+                  onChange={(e) => setTempSpeed(parseInt(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Slow</span>
+                  <span>Fast</span>
+                </div>
+              </div>
+            )}
 
             {/* Brightness Control */}
             {currentMode.hasBrightness && (
