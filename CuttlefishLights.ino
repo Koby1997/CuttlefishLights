@@ -11,6 +11,7 @@ uint8_t colors[NUM_LEDS]; // Memory Isolation Test: Commented out to save 300 by
 
 CRGB bassColor = CRGB(0,0,0); //used for some behaviors that use random colors
 long emaAmplitude = 0;    // Optimization: Replaces recentValues[20] array (Saves 40 bytes)
+long bandEma[7] = {0,0,0,0,0,0,0}; // Per-band moving average for smarter hit detection
 long sensitivity;
 bool aboveSensitivity;
 

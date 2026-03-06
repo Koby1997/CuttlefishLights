@@ -46,7 +46,10 @@ void switchOnBeatTick() {
   
   const unsigned long MIN_LATCH_MS = 200;
   
-  bool hitHigh = isHit(0) && (highestBand() == 0);
+  // By removing highestBand() == 0, we allow bass to trigger even if cymbals/high-hats 
+  // are technically louder in that exact millisecond. isHit(0) now intelligently 
+  // checks against the bass band's own moving average.
+  bool hitHigh = isHit(0);
   bool hitLow = !isHit(0);
   
   if (hitHigh) {

@@ -78,9 +78,19 @@ int highestBand()
 /*
  * Just sees if the band given is higher than the sensitivity
  */
+/*
+ * Smarter hit detection: Compares a band against its OWN moving average
+ * plus a global sensitivity baseline override.
+ */
 bool isHit(int b)
 {
-    if(band[b] > sensitivity)
+    // A hit occurs if the band sharply spikes above its recent history (1.5x its EMA)
+    long dynamicThreshold = (bandEma[b] * 15L) / 10L; // 1.5x EMA
+    
+    // We still use global sensitivity as a minimum floor to avoid false positives on quiet noise
+    long actualThreshold = (dynamicThreshold > sensitivity) ? dynamicThreshold : sensitivity;
+    
+    if(band[b] > actualThreshold)
         return true;
     else
         return false;
@@ -88,7 +98,10 @@ bool isHit(int b)
 
 bool isLightHit(int b)
 {
-    if(band[b] > (sensitivity / 2))
+    long dynamicThreshold = (bandEma[b] * 12L) / 10L; // 1.2x EMA
+    long actualThreshold = (dynamicThreshold > (sensitivity / 2)) ? dynamicThreshold : (sensitivity / 2);
+
+    if(band[b] > actualThreshold)
         return true;
     else
         return false;
@@ -214,17 +227,21 @@ void readSpectrum()
      * Some higher than others, so I also initially subtract from the band readings
      * to try to make it start at 0
      */
-    (band[0] * 1.7) - 110 > 0 ? band[0] = (band[0] * 1.7) - 110 : band[0] = 0;
-    (band[1] * 1.5) - 120 > 0 ? band[1] = (band[1] * 1.5) - 120 : band[1] = 0;
-    band[2] - 90 > 0 ? band[2] = band[2] - 90 : band[2] = 0;
-    band[3] - 90 > 0 ? band[3] = band[3] - 90 : band[3] = 0;
-    band[4] - 90 > 0 ? band[4] = band[4] - 90 : band[4] = 0;
-    band[5] - 90 > 0 ? band[5] = band[5] - 90 : band[5] = 0;
-    (band[6] * 1.2) - 140 > 0 ? band[6] = (band[6] * 1.2) - 140 : band[6] = 0;//This doesn't get hit nearly as high either
+    (band[0] * 1.7) - 110 > 0 ? band[0] = constrain((band[0] * 1.7) - 110, 0, 1023) : band[0] = 0;
+    (band[1] * 1.5) - 120 > 0 ? band[1] = constrain((band[1] * 1.5) - 120, 0, 1023) : band[1] = 0;
+    band[2] - 90 > 0 ? band[2] = constrain(band[2] - 90, 0, 1023) : band[2] = 0;
+    band[3] - 90 > 0 ? band[3] = constrain(band[3] - 90, 0, 1023) : band[3] = 0;
+    band[4] - 90 > 0 ? band[4] = constrain(band[4] - 90, 0, 1023) : band[4] = 0;
+    band[5] - 90 > 0 ? band[5] = constrain(band[5] - 90, 0, 1023) : band[5] = 0;
+    (band[6] * 1.2) - 140 > 0 ? band[6] = constrain((band[6] * 1.2) - 140, 0, 1023) : band[6] = 0; //This doesn't get hit nearly as high either
 
     for(int i = 0; i < 7; i++)
     {
         totalAmp += band[i];
+        
+        // Update per-band EMA (20% new, 80% old)
+        // Helps smooth out individual band histories for smarter hit detection
+        bandEma[i] = ((long)band[i] * 20L + bandEma[i] * 80L) / 100L;
     }
 
     // EMA Optimization: replaces [20] int array and 50-iteration loop.
@@ -254,5 +271,10 @@ void setSensitivity()
     // which causes division-by-tiny-number blowouts, rendering the strip fully lit on pure static.
     if (sensitivity < 60) {
         sensitivity = 60;
+    }
+    
+    // Add a ceiling to prevent "deafness" during universally loud sections.
+    if (sensitivity > 750) {
+        sensitivity = 750;
     }
 }
