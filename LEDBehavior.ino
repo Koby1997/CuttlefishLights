@@ -231,8 +231,13 @@ void sevenBounceTick() {
 
   if (currentVar1 == 1) {
     // --- FADE MODE ---
-    float fadeKeep = map((int)response, 1, 100, 95, 70) / 100.0;
+    float decayResponse = constrain(currentVar3, 1, 10);
+    // 1 = floaty decay (0.95), 10 = snappy decay (0.70)
+    float fadeKeep = map((int)decayResponse, 1, 10, 95, 70) / 100.0;
+    // 1 = floaty attack (0.4), 100 = snappy attack (1.0) -> Faster rise!
+    float attackFade = map((int)response, 1, 100, 40, 100) / 100.0;
     static float fadeLevel[7] = {0,0,0,0,0,0,0};
+    static unsigned long peakTimeFade[7] = {0,0,0,0,0,0,0};
 
     for (int section = 0; section < 7; section++) {
       int start = (section * sectionlength) + section;
@@ -243,11 +248,15 @@ void sevenBounceTick() {
         temp = constrain((float)band[section] / ((float)sensitivity * 0.75), 0.0, 1.0);
       }
 
-      // Snap to target if higher, otherwise decay
+      // Smooth attack if higher, otherwise decay
       if (temp > fadeLevel[section]) {
-        fadeLevel[section] = temp;
+        fadeLevel[section] += (temp - fadeLevel[section]) * attackFade;
+        peakTimeFade[section] = millis(); // Hold peak to prevent shivering
       } else {
-        fadeLevel[section] = fadeLevel[section] * fadeKeep;
+        // Peak hold for 80ms on micro-drops prevents the 1-frame flutter
+        if (millis() - peakTimeFade[section] > 80) {
+          fadeLevel[section] = fadeLevel[section] * fadeKeep;
+        }
       }
 
       CRGB baseColor = lightSwitch(section);
@@ -263,8 +272,13 @@ void sevenBounceTick() {
   } else {
     // --- BOUNCE MODE ---
     static float litCount[7] = {0, 0, 0, 0, 0, 0, 0};
-    // 1 = smooth (0.95 multiplier), 100 = snappy (0.50 multiplier)
-    float smoothingFactor = map((int)response, 1, 100, 95, 50) / 100.0;
+    static unsigned long peakTimeBounce[7] = {0, 0, 0, 0, 0, 0, 0};
+    
+    float decayResponse = constrain(currentVar3, 1, 10);
+    // 1 = floaty decay (0.95 multiplier), 10 = snappy decay (0.50 multiplier)
+    float smoothingFactor = map((int)decayResponse, 1, 10, 95, 50) / 100.0;
+    // 1 = floaty attack (0.3), 100 = snappy attack (1.0) -> Faster rise!
+    float attackFactor = map((int)response, 1, 100, 30, 100) / 100.0;
 
     float tLits[7] = {0,0,0,0,0,0,0};
 
@@ -278,9 +292,13 @@ void sevenBounceTick() {
       tLits[i] = targetLit;
 
       if (targetLit > litCount[i]) {
-        litCount[i] = targetLit; // Jump up instantly on a hit
+        litCount[i] += (targetLit - litCount[i]) * attackFactor; // Smooth Attack
+        peakTimeBounce[i] = millis(); // Hold peak to prevent shivering
       } else {
-        litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
+        // Peak hold for 80ms on micro-drops prevents the 1-frame flutter
+        if (millis() - peakTimeBounce[i] > 80) {
+          litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
+        }
       }
 
       int start  = (i * sectionlength) + i;
@@ -553,4 +571,128 @@ void megaBounceTick(int dirState, int speed) {
   
   safeShow();
   safeDelay(speed);
+}
+
+void threeBounceTick() {
+  readSpectrum();
+  int sectionlength = NUM_LEDS / 3;
+
+  float decayResponse = constrain(currentVar3, 1, 10);
+  // WIDENED: 1 = ultra-floaty decay (0.98), 10 = snappy decay (0.70)
+  float fadeKeep = map((int)decayResponse, 1, 10, 98, 70) / 100.0;
+  // WIDENED: 1 = ultra-floaty decay (0.98), 10 = snappy decay (0.50)
+  float smoothingFactor = map((int)decayResponse, 1, 10, 98, 50) / 100.0;
+
+  float attackFade = map((int)currentVar2, 1, 100, 40, 100) / 100.0;
+  float attackFactor = map((int)currentVar2, 1, 100, 30, 100) / 100.0;
+  // Explicitly boost Band 4 logic slightly before weighted sections
+  float b4 = band[4] * 1.25;
+
+  float wBand0 = (band[0] * 0.60) + (band[1] * 0.25) + (band[2] * 0.15);
+  float wBand1 = (band[3] * 0.60) + (band[2] * 0.20) + (b4 * 0.20);
+  float wBand2 = ((band[6] * 0.60) + (band[5] * 0.25) + (b4 * 0.15)) * 1.60; // 60% Boost still applies
+
+  float weightedBands[3] = { wBand0, wBand1, wBand2 };
+
+  static int debugCounter = 0;
+  bool shouldLog = (debugCounter % 5 == 0);
+  debugCounter++;
+
+  if (currentVar1 == 1) {
+    // --- FADE MODE ---
+    static float fadeLevel[3] = {0,0,0};
+    static unsigned long peakTimeFade[3] = {0,0,0};
+
+    for (int section = 0; section < 3; section++) {
+      int start = (section * sectionlength) + section;
+      int end   = start + sectionlength;
+
+      float temp = 0;
+      if (sensitivity > 0) {
+        temp = constrain((float)weightedBands[section] / ((float)sensitivity * 0.75), 0.0, 1.0);
+      }
+
+      if (temp > fadeLevel[section]) {
+        fadeLevel[section] += (temp - fadeLevel[section]) * attackFade;
+        peakTimeFade[section] = millis();
+      } else {
+        if (millis() - peakTimeFade[section] > 80) {
+          fadeLevel[section] = fadeLevel[section] * fadeKeep;
+        }
+      }
+
+      CRGB baseColor;
+      if (section == 0) baseColor = CRGB(currentR, currentG, currentB);
+      else if (section == 1) baseColor = CRGB(currentR2, currentG2, currentB2);
+      else baseColor = CRGB(currentR3, currentG3, currentB3);
+      
+      baseColor.r = baseColor.r * fadeLevel[section];
+      baseColor.g = baseColor.g * fadeLevel[section];
+      baseColor.b = baseColor.b * fadeLevel[section];
+
+      for (int i = start; i < end && i < NUM_LEDS; i++) {
+        leds[i] = baseColor;
+      }
+    }
+  } else {
+    // --- BOUNCE MODE ---
+    static float litCount[3] = {0, 0, 0};
+    static unsigned long peakTimeBounce[3] = {0, 0, 0};
+
+    float tLits[3] = {0,0,0};
+
+    for (int i = 0; i < 3; i++) {
+      float targetLit = 0;
+      if (sensitivity > 0) {
+        float temp = (float)weightedBands[i] / (float)sensitivity;
+        targetLit = constrain(temp * sectionlength, 0.0, (float)sectionlength);
+      }
+      
+      tLits[i] = targetLit;
+
+      if (targetLit > litCount[i]) {
+        litCount[i] += (targetLit - litCount[i]) * attackFactor;
+        peakTimeBounce[i] = millis();
+      } else {
+        if (millis() - peakTimeBounce[i] > 80) {
+          litCount[i] = litCount[i] * smoothingFactor;
+        }
+      }
+
+      int start  = (i * sectionlength) + i;
+      int end    = ((i + 1) * sectionlength) + i - 1;
+      int numLit = (int)litCount[i];
+
+      CRGB baseColor;
+      if (i == 0) baseColor = CRGB(currentR, currentG, currentB);
+      else if (i == 1) baseColor = CRGB(currentR2, currentG2, currentB2);
+      else baseColor = CRGB(currentR3, currentG3, currentB3);
+
+      for (int j = start; j < start + numLit && j <= end && j < NUM_LEDS; j++) {
+        leds[j] = baseColor;
+      }
+      for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
+        leds[j] = CRGB(0, 0, 0);
+      }
+    }
+
+    if (shouldLog) {
+      Serial.print(F("[DEBUG_3BOUNCE] Sens:"));
+      Serial.print(sensitivity);
+      Serial.print(F(" | wBands: "));
+      for(int i=0; i<3; i++) { Serial.print(weightedBands[i], 1); Serial.print(F(",")); }
+      Serial.print(F(" | targets: "));
+      for(int i=0; i<3; i++) { Serial.print(tLits[i], 1); Serial.print(F(",")); }
+      Serial.println();
+    }
+
+    // White separators between sections
+    for (int i = 1; i < 3; i++) {
+      int idx = (((i * sectionlength) + i) - 1);
+      if (idx < NUM_LEDS) leds[idx] = CRGB(100, 100, 100);
+    }
+  }
+
+  safeShow();
+  safeDelay(15);
 }
