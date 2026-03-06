@@ -88,7 +88,22 @@ function App() {
       hasDirection: false,
       hasBrightness: true,
       hasSubMode: true,  // 0 = Bounce, 1 = Fade
-      hasResponse: true,  // Controls smoothing speed (var2)
+      hasResponse: true,  // Controls Attack smoothing speed (var2)
+      hasDecay: true,    // Controls Decay gravity speed (var3)
+      category: "Music-Reactive"
+    },
+    {
+      id: "THREEBOUNCE",
+      title: "Three Bounce",
+      icon: AlignEndHorizontal,
+      desc: "Like Seven Bounce, but groups the frequencies into 3 distinct Low, Mid, and High sections. The Low section represents bands 1-3, Mid represents bands 3-5, and High represents bands 5-7.",
+      hasSpeed: false,
+      hasDirection: false,
+      hasBrightness: true,
+      hasSubMode: true,  // 0 = Bounce, 1 = Fade
+      hasResponse: true,  // Controls Attack smoothing speed (var2)
+      hasDecay: true,    // Controls Decay gravity speed (var3)
+      hasSectionColors: true,
       category: "Music-Reactive"
     },
     {
@@ -214,6 +229,9 @@ function App() {
   const [tempVar2, setTempVar2] = useState(50); // Generic Variable 2 (e.g. Response)
   const [tempVar3, setTempVar3] = useState(0); // Generic Variable 3
   const [tempColor, setTempColor] = useState("#ffffff"); // Hex Color for Solid Color mode
+  const [section1Color, setSection1Color] = useState("#ff0000"); // Red Default
+  const [section2Color, setSection2Color] = useState("#00ff00"); // Green Default
+  const [section3Color, setSection3Color] = useState("#ff00d2"); // Pink Default
 
   useEffect(() => {
     // Force the aesthetic defaults for the initially selected mode on page load
@@ -244,7 +262,18 @@ function App() {
         setTempSpeed(50); // N/A
         setDirection(1); // N/A
         setTempVar1(0); // Style: Bounce
-        setTempVar2(1); // Response: 1
+        setTempVar2(8); // Attack: 8 (Snappy default)
+        setTempVar3(5); // Decay: 5 (Standard default)
+        break;
+      case "THREEBOUNCE":
+        setTempSpeed(50); // N/A
+        setDirection(1); // N/A
+        setTempVar1(0); // Style: Bounce
+        setTempVar2(8); // Attack
+        setTempVar3(5); // Decay
+        setSection1Color("#ff0000"); // Red Default
+        setSection2Color("#00ff00"); // Green Default
+        setSection3Color("#ff00d2"); // Pink Default
         break;
       case "MEGABOUNCE":
         setTempSpeed(50); // N/A
@@ -344,9 +373,11 @@ function App() {
     // VAR1 / VAR2 / VAR3
     let var1 = tempVar1;
     let var2 = tempVar2;
-    let var3 = mode.id === "MEGABOUNCE" ? tempVar3 : 0;
+    let var3 = (mode.id === "MEGABOUNCE" || mode.id === "BOUNCE" || mode.id === "THREEBOUNCE") ? tempVar3 : 0;
 
     let r = 0, g = 0, b = 0;
+    let r2 = 0, g2 = 0, b2 = 0;
+    let r3 = 0, g3 = 0, b3 = 0;
 
     // For Solid Color Mode, intercept vars and send RGB
     if (mode.hasColorPicker) {
@@ -361,10 +392,25 @@ function App() {
       r = parseInt(hex.substring(0, 2), 16);
       g = parseInt(hex.substring(2, 4), 16);
       b = parseInt(hex.substring(4, 6), 16);
+    } else if (mode.id === "THREEBOUNCE") {
+      const hex1 = section1Color.replace('#', '');
+      r = parseInt(hex1.substring(0, 2), 16);
+      g = parseInt(hex1.substring(2, 4), 16);
+      b = parseInt(hex1.substring(4, 6), 16);
+
+      const hex2 = section2Color.replace('#', '');
+      r2 = parseInt(hex2.substring(0, 2), 16);
+      g2 = parseInt(hex2.substring(2, 4), 16);
+      b2 = parseInt(hex2.substring(4, 6), 16);
+
+      const hex3 = section3Color.replace('#', '');
+      r3 = parseInt(hex3.substring(0, 2), 16);
+      g3 = parseInt(hex3.substring(2, 4), 16);
+      b3 = parseInt(hex3.substring(4, 6), 16);
     }
 
     // Send the Single Unified Command
-    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3, r, g, b);
+    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3, r, g, b, r2, g2, b2, r3, g3, b3);
     setActiveMode(mode.id);
   };
 
@@ -660,12 +706,12 @@ function App() {
               </div>
             )}
 
-            {/* Response / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
+            {/* Attack / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
             {currentMode.hasResponse && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <ChevronRight size={16} className="text-orange-500" /> Response
+                    <ChevronRight size={16} className="text-orange-500" /> Attack
                   </label>
                   <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
                     {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
@@ -674,7 +720,7 @@ function App() {
                 <input
                   type="range"
                   min="1"
-                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE") ? "10" : "100"}
+                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") ? "10" : "100"}
                   value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
                   onChange={(e) => {
                     const val = parseInt(e.target.value);
@@ -686,6 +732,32 @@ function App() {
                 <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
                   <span>Smooth</span>
                   <span>Snappy</span>
+                </div>
+              </div>
+            )}
+
+            {/* Decay / Gravity Control (VAR3 intentionally isolated for Bounce) */}
+            {currentMode.hasDecay && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                    <ChevronRight size={16} className="text-orange-500 rotate-90" /> Decay
+                  </label>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {tempVar3}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={tempVar3}
+                  onChange={(e) => setTempVar3(parseInt(e.target.value))}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Slow (Float)</span>
+                  <span>Fast (Drop)</span>
                 </div>
               </div>
             )}
@@ -820,6 +892,39 @@ function App() {
                 {/* Visualizer Injection */}
                 <SortVisualizer algorithm={tempVar1} direction={direction} speed={tempSpeed} />
 
+              </div>
+            )}
+
+            {/* Section Colors for Three Bounce */}
+            {currentMode.hasSectionColors && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <Palette size={16} className="text-orange-500" /> Section Colors
+                </label>
+
+                <div className="space-y-4">
+                  {[
+                    { label: "Low Section", state: section1Color, setter: setSection1Color },
+                    { label: "Mid Section", state: section2Color, setter: setSection2Color },
+                    { label: "High Section", state: section3Color, setter: setSection3Color }
+                  ].map((section, sIdx) => (
+                    <div key={sIdx} className="mb-4 last:mb-0 flex items-center justify-between bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                      <div>
+                        <span className="text-sm font-bold text-zinc-300 block">{section.label}</span>
+                        <span className="text-[10px] text-zinc-500 font-mono uppercase">Custom HTML RGB Wheel</span>
+                      </div>
+                      <div className="relative group cursor-pointer">
+                        <input
+                          type="color"
+                          value={section.state}
+                          onChange={(e) => section.setter(e.target.value)}
+                          className="w-10 h-10 p-0 border-0 rounded-full overflow-hidden cursor-pointer"
+                        />
+                        <div className="absolute inset-0 ring-2 ring-zinc-700/50 rounded-full pointer-events-none group-hover:ring-orange-500/50 transition-all"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

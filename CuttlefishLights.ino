@@ -36,6 +36,7 @@ enum BehaviorMode {
   SWITCH_ON_BEAT,
   SNAKE,
   SEVEN_BOUNCE, // Added for visualization
+  THREE_BOUNCE,
   BASS_NEW,
   DRIFT,
   FLOW,
@@ -59,6 +60,12 @@ int currentVar3 = 0;  // Generic Variable 3 (Used for B in RGB)
 int currentR = 255;
 int currentG = 255;
 int currentB = 255;
+int currentR2 = 0;
+int currentG2 = 255;
+int currentB2 = 0;
+int currentR3 = 255;
+int currentG3 = 0;
+int currentB3 = 255;
 BehaviorMode lastMode = OFF; // Track mode changes for optimization
 
 //State variables for non-blocking functions
@@ -76,6 +83,7 @@ void sevenColorsTick(bool forward, int speed);
 void switchOnBeatTick();
 void snakeTick(bool forward, int speed);
 void sevenBounceTick();
+void threeBounceTick();
 void bassStartsNewColorTick(bool forward, int speed);
 void colorDriftTick(int speed);
 void colorFlowTick(bool forward, int speed);
@@ -151,6 +159,9 @@ void loop() {
        break;
     case SEVEN_BOUNCE:
        sevenBounceTick();
+       break;
+    case THREE_BOUNCE:
+       threeBounceTick();
        break;
     case BASS_NEW:
        bassStartsNewColorTick(currentDirection, currentSpeed);
@@ -240,7 +251,7 @@ void parseCommand(String& command) {
   
   String modeStr = "";
   
-  while (startIdx < command.length() && t < 10) {
+  while (startIdx < command.length() && t < 16) {
       int commaIdx = command.indexOf(',', startIdx);
       String token;
       if (commaIdx == -1) {
@@ -276,6 +287,18 @@ void parseCommand(String& command) {
           currentG = token.toInt();
       } else if (t == 9 && token.length() > 0) {
           currentB = token.toInt();
+      } else if (t == 10 && token.length() > 0) {
+          currentR2 = token.toInt();
+      } else if (t == 11 && token.length() > 0) {
+          currentG2 = token.toInt();
+      } else if (t == 12 && token.length() > 0) {
+          currentB2 = token.toInt();
+      } else if (t == 13 && token.length() > 0) {
+          currentR3 = token.toInt();
+      } else if (t == 14 && token.length() > 0) {
+          currentG3 = token.toInt();
+      } else if (t == 15 && token.length() > 0) {
+          currentB3 = token.toInt();
       }
       t++;
   }
@@ -296,6 +319,7 @@ void parseCommand(String& command) {
   else if (modeStr == "SNAKE") currentMode = SNAKE;
   else if (modeStr == "SWITCH") currentMode = SWITCH_ON_BEAT;
   else if (modeStr == "BOUNCE") currentMode = SEVEN_BOUNCE;
+  else if (modeStr == "THREEBOUNCE") currentMode = THREE_BOUNCE;
   else if (modeStr == "BASSNEW") currentMode = BASS_NEW;
   else if (modeStr == "DRIFT") currentMode = DRIFT;
   else if (modeStr == "FLOW") currentMode = FLOW;
