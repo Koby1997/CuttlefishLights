@@ -226,8 +226,10 @@ void handleSerial() {
       // 2. If we found '<', read until '>'
       if (foundStart) {
         Serial.setTimeout(500); // Give enough time for the full string to arrive
-        String cmd = Serial.readStringUntil('>');
-        parseCommand(cmd);
+        char buf[90];
+        size_t len = Serial.readBytesUntil('>', buf, sizeof(buf) - 1);
+        buf[len] = '\0';
+        parseCommand(buf);
       } else {
         Serial.println(F("DEBUG_ERR: Timeout waiting for <"));
       }
@@ -235,104 +237,84 @@ void handleSerial() {
   }
 }
 
-void parseCommand(String& command) {
-  command.trim();
-  // Serial.print(F("DEBUG_RX: '"));
-  // Serial.print(command);
-  // Serial.println(F("'"));
+void parseCommand(char* command) {
+  // Serial.print(F("DEBUG_RX: '")); Serial.print(command); Serial.println(F("'"));
 
-  if (!command.startsWith("SET:")) {
+  if (strncmp(command, "SET:", 4) != 0) {
       // Serial.println(F("DEBUG_ERR: No SET: prefix"));
       return; 
   }
   
-  int startIdx = 4; // Skip "SET:"
+  char* ptr = command + 4; // Skip "SET:"
   int t = 0;
   
-  String modeStr = "";
+  char modeStr[20] = {0};
   
-  while (startIdx < command.length() && t < 16) {
-      int commaIdx = command.indexOf(',', startIdx);
-      String token;
-      if (commaIdx == -1) {
-          token = command.substring(startIdx);
-          startIdx = command.length();
-      } else {
-          token = command.substring(startIdx, commaIdx);
-          startIdx = commaIdx + 1;
+  while (*ptr && t < 16) {
+      char* commaPtr = strchr(ptr, ',');
+      if (commaPtr) {
+          *commaPtr = '\0'; // Null terminate the token
       }
       
       if (t == 0) {
-          modeStr = token;
-      } else if (t == 1 && token.length() > 0) {
-          currentSpeed = token.toInt();
-          if (currentSpeed <= 0) currentSpeed = 1;
-      } else if (t == 2 && token.length() > 0) {
-          currentDirection = token.toInt();
-      } else if (t == 3 && token.length() > 0) {
-          int b = token.toInt();
-          if (b < 0) b = 0;
-          if (b > 255) b = 255;
-          currentBrightness = b;
-          FastLED.setBrightness(currentBrightness);
-      } else if (t == 4 && token.length() > 0) {
-          currentVar1 = token.toInt();
-      } else if (t == 5 && token.length() > 0) {
-          currentVar2 = token.toInt();
-      } else if (t == 6 && token.length() > 0) {
-          currentVar3 = token.toInt();
-      } else if (t == 7 && token.length() > 0) {
-          currentR = token.toInt();
-      } else if (t == 8 && token.length() > 0) {
-          currentG = token.toInt();
-      } else if (t == 9 && token.length() > 0) {
-          currentB = token.toInt();
-      } else if (t == 10 && token.length() > 0) {
-          currentR2 = token.toInt();
-      } else if (t == 11 && token.length() > 0) {
-          currentG2 = token.toInt();
-      } else if (t == 12 && token.length() > 0) {
-          currentB2 = token.toInt();
-      } else if (t == 13 && token.length() > 0) {
-          currentR3 = token.toInt();
-      } else if (t == 14 && token.length() > 0) {
-          currentG3 = token.toInt();
-      } else if (t == 15 && token.length() > 0) {
-          currentB3 = token.toInt();
+          strncpy(modeStr, ptr, sizeof(modeStr) - 1);
+      } else {
+          int val = atoi(ptr);
+          if (ptr[0] != '\0') {
+              if (t == 1) currentSpeed = (val <= 0) ? 1 : val;
+              else if (t == 2) currentDirection = val;
+              else if (t == 3) { currentBrightness = constrain(val, 0, 255); FastLED.setBrightness(currentBrightness); }
+              else if (t == 4) currentVar1 = val;
+              else if (t == 5) currentVar2 = val;
+              else if (t == 6) currentVar3 = val;
+              else if (t == 7) currentR = val;
+              else if (t == 8) currentG = val;
+              else if (t == 9) currentB = val;
+              else if (t == 10) currentR2 = val;
+              else if (t == 11) currentG2 = val;
+              else if (t == 12) currentB2 = val;
+              else if (t == 13) currentR3 = val;
+              else if (t == 14) currentG3 = val;
+              else if (t == 15) currentB3 = val;
+          }
+      }
+      
+      if (commaPtr) {
+          ptr = commaPtr + 1;
+      } else {
+          break; // Reached end of string
       }
       t++;
   }
 
-  if (modeStr == "") {
+  if (strlen(modeStr) == 0) {
       // Serial.println(F("DEBUG_ERR: Missing core args"));
       return; 
   }
 
   // Serial.print(F("DEBUG_MODE: ")); Serial.println(modeStr);
 
-  bool matched = true;
-  if (modeStr == "OFF") currentMode = OFF;
-  else if (modeStr == "RAINBOW") currentMode = RAINBOW;
-  else if (modeStr == "SOLID") currentMode = SOLID_COLOR;
-  else if (modeStr == "OG") currentMode = OG_MODE;
-  else if (modeStr == "SEVENCOLORS") currentMode = SEVEN_COLORS;
-  else if (modeStr == "SNAKE") currentMode = SNAKE;
-  else if (modeStr == "SWITCH") currentMode = SWITCH_ON_BEAT;
-  else if (modeStr == "BOUNCE") currentMode = SEVEN_BOUNCE;
-  else if (modeStr == "THREEBOUNCE") currentMode = THREE_BOUNCE;
-  else if (modeStr == "BASSNEW") currentMode = BASS_NEW;
-  else if (modeStr == "DRIFT") currentMode = DRIFT;
-  else if (modeStr == "FLOW") currentMode = FLOW;
-  else if (modeStr == "SMOOTH") currentMode = SMOOTH;
-  else if (modeStr == "SORT")  currentMode = SORT;
-  else if (modeStr == "PAINTBRUSH") currentMode = PAINTBRUSH;
-  else if (modeStr == "MEGABOUNCE") currentMode = MEGA_BOUNCE;
+  if (strcmp(modeStr, "OFF") == 0) currentMode = OFF;
+  else if (strcmp(modeStr, "RAINBOW") == 0) currentMode = RAINBOW;
+  else if (strcmp(modeStr, "SOLID") == 0) currentMode = SOLID_COLOR;
+  else if (strcmp(modeStr, "OG") == 0) currentMode = OG_MODE;
+  else if (strcmp(modeStr, "SEVENCOLORS") == 0) currentMode = SEVEN_COLORS;
+  else if (strcmp(modeStr, "SNAKE") == 0) currentMode = SNAKE;
+  else if (strcmp(modeStr, "SWITCH") == 0) currentMode = SWITCH_ON_BEAT;
+  else if (strcmp(modeStr, "BOUNCE") == 0) currentMode = SEVEN_BOUNCE;
+  else if (strcmp(modeStr, "THREEBOUNCE") == 0) currentMode = THREE_BOUNCE;
+  else if (strcmp(modeStr, "BASSNEW") == 0) currentMode = BASS_NEW;
+  else if (strcmp(modeStr, "DRIFT") == 0) currentMode = DRIFT;
+  else if (strcmp(modeStr, "FLOW") == 0) currentMode = FLOW;
+  else if (strcmp(modeStr, "SMOOTH") == 0) currentMode = SMOOTH;
+  else if (strcmp(modeStr, "SORT") == 0) currentMode = SORT;
+  else if (strcmp(modeStr, "PAINTBRUSH") == 0) currentMode = PAINTBRUSH;
+  else if (strcmp(modeStr, "MEGABOUNCE") == 0) currentMode = MEGA_BOUNCE;
   else {
-      matched = false;
       // Serial.println(F("DEBUG_ERR: Mode not matched!"));
   }
   
-  // if (matched) Serial.println(F("DEBUG_OK: Mode changed"));
+  // Serial.println(F("DEBUG_OK: Mode changed"));
     
   Serial.println(F("ACK")); // Keep ACK so React dashboard keeps sending slider changes seamlessly
 }
