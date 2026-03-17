@@ -103,6 +103,7 @@ function App() {
       hasSubMode: true,  // 0 = Bounce, 1 = Fade
       hasResponse: true,  // Controls Attack smoothing speed (var2)
       hasDecay: true,    // Controls Decay gravity speed (var3)
+      hasStrictMode: true, // Controls strict band isolation (var4)
       hasSectionColors: true,
       category: "Music-Reactive"
     },
@@ -116,7 +117,8 @@ function App() {
       hasBrightness: true,
       hasSensitivityMode: true, // VAR1: 0=Bass(Punch), 1=All(Meter)
       hasStyleMode: true,       // VAR2: 0=Classic, 1=Fever, 2=Solid
-      hasResponse: true,        // VAR3: Gravity smoothing
+      hasResponse: true,        // VAR3: Attack
+      hasDecay: true,           // VAR4: Decay
       category: "Music-Reactive"
     },
 
@@ -228,6 +230,7 @@ function App() {
   const [tempVar1, setTempVar1] = useState(20); // Generic Variable 1
   const [tempVar2, setTempVar2] = useState(50); // Generic Variable 2 (e.g. Response)
   const [tempVar3, setTempVar3] = useState(0); // Generic Variable 3
+  const [tempVar4, setTempVar4] = useState(0); // Generic Variable 4 (Strict Mode Toggle)
   const [tempColor, setTempColor] = useState("#ffffff"); // Hex Color for Solid Color mode
   const [section1Color, setSection1Color] = useState("#ff0000"); // Red Default
   const [section2Color, setSection2Color] = useState("#00ff00"); // Green Default
@@ -269,8 +272,9 @@ function App() {
         setTempSpeed(50); // N/A
         setDirection(1); // N/A
         setTempVar1(0); // Style: Bounce
-        setTempVar2(8); // Attack
-        setTempVar3(5); // Decay
+        setTempVar2(2); // Attack
+        setTempVar3(2); // Decay
+        setTempVar4(0); // Processing: Blend
         setSection1Color("#ff0000"); // Red Default
         setSection2Color("#00ff00"); // Green Default
         setSection3Color("#ff00d2"); // Pink Default
@@ -280,7 +284,8 @@ function App() {
         setDirection(0); // Backward
         setTempVar1(0); // Sensitivity: Bass
         setTempVar2(0); // Style: Classic
-        setTempVar3(1); // Response: 1
+        setTempVar3(5); // Attack: 5
+        setTempVar4(5); // Decay: 5
         break;
       case "SNAKE":
         setTempSpeed(100);
@@ -370,10 +375,11 @@ function App() {
     // Brightness: Default to 60 or tempBrightness
     const brightVal = tempBrightness;
 
-    // VAR1 / VAR2 / VAR3
+    // VAR1 / VAR2 / VAR3 / VAR4
     let var1 = tempVar1;
     let var2 = tempVar2;
     let var3 = (mode.id === "MEGABOUNCE" || mode.id === "BOUNCE" || mode.id === "THREEBOUNCE") ? tempVar3 : 0;
+    let var4 = tempVar4;
 
     let r = 0, g = 0, b = 0;
     let r2 = 0, g2 = 0, b2 = 0;
@@ -410,7 +416,7 @@ function App() {
     }
 
     // Send the Single Unified Command
-    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3, r, g, b, r2, g2, b2, r3, g3, b3);
+    await serialService.sendConfig(mode.id, delay, dirVal, brightVal, var1, var2, var3, var4, r, g, b, r2, g2, b2, r3, g3, b3);
     setActiveMode(mode.id);
   };
 
@@ -587,52 +593,6 @@ function App() {
               </div>
             )}
 
-            {/* Direction Control */}
-            {currentMode.hasDirection && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <ArrowRightLeft size={16} className="text-orange-500" /> Direction
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
-                  <button
-                    onClick={() => setDirection(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      direction === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Forward
-                  </button>
-                  <button
-                    onClick={() => setDirection(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      direction === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Backward
-                  </button>
-                  {currentMode.id === "MEGABOUNCE" && (
-                    <button
-                      onClick={() => setDirection(2)}
-                      className={clsx(
-                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                        direction === 2
-                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                      )}
-                    >
-                      Center-Out
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Density / VAR1 Control */}
             {currentMode.hasDensity && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
@@ -706,62 +666,6 @@ function App() {
               </div>
             )}
 
-            {/* Attack / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
-            {currentMode.hasResponse && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <ChevronRight size={16} className="text-orange-500" /> Attack
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") ? "10" : "100"}
-                  value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (currentMode.id === "MEGABOUNCE") setTempVar3(val);
-                    else setTempVar2(val);
-                  }}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Smooth</span>
-                  <span>Snappy</span>
-                </div>
-              </div>
-            )}
-
-            {/* Decay / Gravity Control (VAR3 intentionally isolated for Bounce) */}
-            {currentMode.hasDecay && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <ChevronRight size={16} className="text-orange-500 rotate-90" /> Decay
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {tempVar3}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={tempVar3}
-                  onChange={(e) => setTempVar3(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Slow (Float)</span>
-                  <span>Fast (Drop)</span>
-                </div>
-              </div>
-            )}
-
             {/* Sub-Mode Toggle (e.g. Bounce / Fade) */}
             {currentMode.hasSubMode && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
@@ -791,6 +695,160 @@ function App() {
                   >
                     {currentMode.id === "PAINTBRUSH" ? "Black out" : "Fade"}
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Attack / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
+            {currentMode.hasResponse && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                      <ChevronRight size={16} className="text-orange-500" /> Attack
+                    </label>
+                    <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                      How quickly the color rises
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") ? "10" : "100"}
+                  value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (currentMode.id === "MEGABOUNCE") setTempVar3(val);
+                    else setTempVar2(val);
+                  }}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Slow</span>
+                  <span>Fast</span>
+                </div>
+              </div>
+            )}
+
+            {/* Decay / Gravity Control */}
+            {currentMode.hasDecay && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                      <ChevronRight size={16} className="text-orange-500 rotate-90" /> Decay
+                    </label>
+                    <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                      How quickly the color falls
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                    {currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (currentMode.id === "MEGABOUNCE") setTempVar4(val);
+                    else setTempVar3(val);
+                  }}
+                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                />
+                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span>Slow</span>
+                  <span>Fast</span>
+                </div>
+              </div>
+            )}
+
+            {/* Strict Mode Toggle (VAR4) */}
+            {currentMode.hasStrictMode && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <div className="mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                    <Music size={16} className="text-orange-500" /> Processing
+                  </label>
+                  <p className="text-sm text-zinc-500 leading-relaxed font-medium">
+                    Not much difference between the two, but Normal blends multiple bands of frequencies where strict only takes the lowest/middle/highest frequencies.
+                  </p>
+                </div>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                  <button
+                    onClick={() => setTempVar4(0)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                      tempVar4 === 0
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Blend
+                  </button>
+                  <button
+                    onClick={() => setTempVar4(1)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                      tempVar4 === 1
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Strict
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Direction Control - Relocated to span full width above Color Styles */}
+            {currentMode.hasDirection && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                  <ArrowRightLeft size={16} className="text-orange-500" /> Direction
+                </label>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                  <button
+                    onClick={() => setDirection(1)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      direction === 1
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Forward
+                  </button>
+                  <button
+                    onClick={() => setDirection(0)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                      direction === 0
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Backward
+                  </button>
+                  {currentMode.id === "MEGABOUNCE" && (
+                    <button
+                      onClick={() => setDirection(2)}
+                      className={clsx(
+                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                        direction === 2
+                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                      )}
+                    >
+                      Center-Out
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -828,9 +886,14 @@ function App() {
             {/* Snake Color Style Selector (VAR2) */}
             {currentMode.hasSnakeMode && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <Palette size={16} className="text-orange-500" /> Color Style
-                </label>
+                <div className="mb-4">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                    <Palette size={16} className="text-orange-500" /> Color Style
+                  </label>
+                  <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                    Changes how the snake determines its body color
+                  </p>
+                </div>
                 <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
                   {[
                     { label: "Audio", val: 0 },
@@ -852,9 +915,6 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  Changes how the snake determines its body color
-                </p>
               </div>
             )}
 
@@ -904,14 +964,13 @@ function App() {
 
                 <div className="space-y-4">
                   {[
-                    { label: "Low Section", state: section1Color, setter: setSection1Color },
+                    { label: "Bass Section", state: section1Color, setter: setSection1Color },
                     { label: "Mid Section", state: section2Color, setter: setSection2Color },
                     { label: "High Section", state: section3Color, setter: setSection3Color }
                   ].map((section, sIdx) => (
                     <div key={sIdx} className="mb-4 last:mb-0 flex items-center justify-between bg-zinc-950 p-4 rounded-xl border border-zinc-800">
                       <div>
                         <span className="text-sm font-bold text-zinc-300 block">{section.label}</span>
-                        <span className="text-[10px] text-zinc-500 font-mono uppercase">Custom HTML RGB Wheel</span>
                       </div>
                       <div className="relative group cursor-pointer">
                         <input

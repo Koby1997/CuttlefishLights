@@ -46,13 +46,13 @@ class SerialService {
      * Queues a configuration command.
      * The actual sending is handled by processQueue when tokens/acks allow.
      */
-    async sendConfig(mode, speed, dir, brightness, var1, var2, var3, r = 0, g = 0, b = 0, r2 = 0, g2 = 0, b2 = 0, r3 = 0, g3 = 0, b3 = 0) {
+    async sendConfig(mode, speed, dir, brightness, var1, var2, var3, var4, r = 0, g = 0, b = 0, r2 = 0, g2 = 0, b2 = 0, r3 = 0, g3 = 0, b3 = 0) {
         if (!this.isConnected || !this.writer) {
             console.error("Cannot send: Not connected");
             return;
         }
 
-        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2},${var3},${r},${g},${b},${r2},${g2},${b2},${r3},${g3},${b3}`;
+        const command = `SET:${mode},${speed},${dir},${brightness},${var1},${var2},${var3},${var4},${r},${g},${b},${r2},${g2},${b2},${r3},${g3},${b3}`;
         console.log(`Queueing command: ${command}`);
         this.commandQueue.push(command);
         if (this.commandQueue.length > 2) this.commandQueue.shift();

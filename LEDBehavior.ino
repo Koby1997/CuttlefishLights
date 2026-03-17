@@ -513,19 +513,23 @@ void megaBounceTick(int dirState, int speed) {
     targetCount = map(constrain(rawAmplitude, 0, 1000), 0, 1000, 0, maxLeds);
   }
   
-  // 3. Gravity/Smoothing (VAR3)
-  // currentVar3 maps directly from the UI Response Slider (capped at 50 for Mega Bounce)
-  // Reversed: 50 = Snappy (0.50 smoothing), 1 = Floaty (0.99 smoothing)
-  float smoothingFactor = (100.0 - currentVar3) / 100.0;
+  // 3. Gravity/Smoothing (VAR3 & VAR4)
+  // currentVar3 (Attack) maps to how fast it shoots up (10 = instantly 1.0)
+  // currentVar4 (Decay) maps to how fast it falls (10 = instantly drops fast, 1 = floaty)
+  
+  // Shifted ranges down to compensate for the hardware rendering 300 LEDs at once
+  // Decay: 1 = keeps 99.8% (very floaty), 10 = keeps 97.2% (old value 5)
+  float decayFactor = map(constrain(currentVar4, 1, 10), 1, 10, 998, 972) / 1000.0;
+  // Attack: 1 = gains 5% to target (gentle rise), 10 = gains 50% to target (still snappy)
+  float attackFactor = map(constrain(currentVar3, 1, 10), 1, 10, 5, 50) / 100.0;
 
   // To avoid getting completely stuck, ensure a minimum drop
   if (targetCount > smoothedCount) {
-    // Attack is always fast
-    smoothedCount = targetCount;
+    // Attack phase: Use VAR3 to dictate upward travel
+    smoothedCount += (targetCount - smoothedCount) * attackFactor;
   } else {
-    // Decay is governed by gravity/smoothing
-    // E.g., if factor is 0.9, it keeps 90% of old value (falls slowly)
-    smoothedCount = (smoothedCount * smoothingFactor) + (targetCount * (1.0 - smoothingFactor));
+    // Decay phase: Use VAR4 mapped factor to pull down
+    smoothedCount = (smoothedCount * decayFactor);
     // Apply a minimum physical gravity drop so it eventually hits 0
     smoothedCount -= 0.5;
   }
@@ -578,6 +582,8 @@ void megaBounceTick(int dirState, int speed) {
 
 void threeBounceTick() {
   readSpectrum();
+  
+  // Actually establish 3 identical 1/3 sections
   int sectionlength = NUM_LEDS / 3;
 
   float decayResponse = constrain(currentVar3, 1, 10);
@@ -591,9 +597,19 @@ void threeBounceTick() {
   // Explicitly boost Band 4 logic slightly before weighted sections
   float b4 = band[4] * 1.25;
 
-  float wBand0 = (band[0] * 0.60) + (band[1] * 0.25) + (band[2] * 0.15);
-  float wBand1 = (band[3] * 0.60) + (band[2] * 0.20) + (b4 * 0.20);
-  float wBand2 = ((band[6] * 0.60) + (band[5] * 0.25) + (b4 * 0.15)) * 1.60; // 60% Boost still applies
+  float wBand0, wBand1, wBand2;
+  
+  if (currentVar4 == 1) {
+      // STRICT MODE: Isolate specific bands
+      wBand0 = band[0]; // Pure bass
+      wBand1 = band[3]; // Pure mid
+      wBand2 = band[6] * 1.5; // Pure highs, boosted mathematically to trigger consistently
+  } else {
+      // NORMAL MODE: Original adjacent frequency bleeding math
+      wBand0 = (band[0] * 0.60) + (band[1] * 0.25) + (band[2] * 0.15);
+      wBand1 = (band[3] * 0.60) + (band[2] * 0.20) + (b4 * 0.20);
+      wBand2 = ((band[6] * 0.60) + (band[5] * 0.25) + (b4 * 0.15)) * 1.60;
+  }
 
   float weightedBands[3] = { wBand0, wBand1, wBand2 };
 
@@ -607,12 +623,18 @@ void threeBounceTick() {
     static unsigned long peakTimeFade[3] = {0,0,0};
 
     for (int section = 0; section < 3; section++) {
-      int start = (section * sectionlength) + section;
+      // Safely distribute length up the strip across iterations
+      int start = (section * sectionlength);
       int end   = start + sectionlength;
+      if (section == 2) end = NUM_LEDS; // Ensure absolute final limit is hit perfectly
 
       float temp = 0;
       if (sensitivity > 0) {
-        temp = constrain((float)weightedBands[section] / ((float)sensitivity * 0.75), 0.0, 1.0);
+        float mod = 1.0;
+        if (section == 1) mod = 1.15;
+        else if (section == 2) mod = 0.85;
+
+        temp = constrain((float)weightedBands[section] / ((float)sensitivity * mod), 0.0, 1.0);
       }
 
       if (temp > fadeLevel[section]) {
@@ -647,7 +669,11 @@ void threeBounceTick() {
     for (int i = 0; i < 3; i++) {
       float targetLit = 0;
       if (sensitivity > 0) {
-        float temp = (float)weightedBands[i] / (float)sensitivity;
+        float mod = 1.0;
+        if (i == 1) mod = 1.15;
+        else if (i == 2) mod = 0.85;
+
+        float temp = (float)weightedBands[i] / ((float)sensitivity * mod);
         targetLit = constrain(temp * sectionlength, 0.0, (float)sectionlength);
       }
       
@@ -662,8 +688,10 @@ void threeBounceTick() {
         }
       }
 
-      int start  = (i * sectionlength) + i;
-      int end    = ((i + 1) * sectionlength) + i - 1;
+      int start  = (i * sectionlength);
+      int end    = start + sectionlength - 1;
+      if (i == 2) end = NUM_LEDS - 1; // Last section snaps to the finish line
+
       int numLit = (int)litCount[i];
 
       CRGB baseColor;

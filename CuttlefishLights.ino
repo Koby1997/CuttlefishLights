@@ -57,6 +57,7 @@ int currentDirection = 1;
 int currentVar1 = 20; // Density
 int currentVar2 = 50; // Generic Variable 2
 int currentVar3 = 0;  // Generic Variable 3 (Used for B in RGB)
+int currentVar4 = 0;  // Generic Variable 4 (Sub-Toggle / Strict Mode)
 int currentR = 255;
 int currentG = 255;
 int currentB = 255;
@@ -250,7 +251,7 @@ void parseCommand(char* command) {
   
   char modeStr[20] = {0};
   
-  while (*ptr && t < 16) {
+  while (*ptr && t < 17) {
       char* commaPtr = strchr(ptr, ',');
       if (commaPtr) {
           *commaPtr = '\0'; // Null terminate the token
@@ -267,15 +268,16 @@ void parseCommand(char* command) {
               else if (t == 4) currentVar1 = val;
               else if (t == 5) currentVar2 = val;
               else if (t == 6) currentVar3 = val;
-              else if (t == 7) currentR = val;
-              else if (t == 8) currentG = val;
-              else if (t == 9) currentB = val;
-              else if (t == 10) currentR2 = val;
-              else if (t == 11) currentG2 = val;
-              else if (t == 12) currentB2 = val;
-              else if (t == 13) currentR3 = val;
-              else if (t == 14) currentG3 = val;
-              else if (t == 15) currentB3 = val;
+              else if (t == 7) currentVar4 = val; // NEW: Added Var4 integration
+              else if (t == 8) currentR = val;
+              else if (t == 9) currentG = val;
+              else if (t == 10) currentB = val;
+              else if (t == 11) currentR2 = val;
+              else if (t == 12) currentG2 = val;
+              else if (t == 13) currentB2 = val;
+              else if (t == 14) currentR3 = val;
+              else if (t == 15) currentG3 = val;
+              else if (t == 16) currentB3 = val;
           }
       }
       
