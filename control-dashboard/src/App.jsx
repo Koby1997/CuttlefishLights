@@ -1013,9 +1013,10 @@ function App() {
 
                       // Instantly activate and blast color to the strip
                       if (currentMode.id === "MEGABOUNCE") {
-                        serialService.sendConfig(currentMode.id, 50, direction, tempBrightness, tempVar1, tempVar2, tempVar3, r, g, b);
+                        // MegaBounce requires a blazing fast 1ms loop delay for physics precision
+                        serialService.sendConfig(currentMode.id, 1, direction, tempBrightness, tempVar1, tempVar2, tempVar3, tempVar4, r, g, b);
                       } else {
-                        serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b, r, g, b);
+                        serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b, 0, r, g, b);
                       }
 
                       if (activeMode !== currentMode.id) {

@@ -224,21 +224,15 @@ void sevenBounceTick() {
   readSpectrum();
   int sectionlength = NUM_LEDS / 7;
 
-  // Response (1-100) -> 1=Floaty (0.95), 100=Snappy (0.50)
-  float response = constrain(currentVar2, 1, 100);
-
-  // DEBUGGING VARS
-  static int debugCounter = 0;
-  bool shouldLog = (debugCounter % 5 == 0); // Log 1 in every 5 frames to prevent serial clog
-  debugCounter++;
+  // Response (1-10) -> 1=Floaty, 10=Snappy
+  float response = constrain(currentVar2, 1, 10);
 
   if (currentVar1 == 1) {
-    // --- FADE MODE ---
     float decayResponse = constrain(currentVar3, 1, 10);
-    // 1 = floaty decay (0.95), 10 = snappy decay (0.70)
-    float fadeKeep = map((int)decayResponse, 1, 10, 95, 70) / 100.0;
-    // 1 = floaty attack (0.4), 100 = snappy attack (1.0) -> Faster rise!
-    float attackFade = map((int)response, 1, 100, 40, 100) / 100.0;
+    // 1 = super floaty (0.98), 10 = fast drop (0.85) - Never drops below 85% to prevent strobe jitter
+    float fadeKeep = map((int)decayResponse, 1, 10, 98, 85) / 100.0;
+    // 1 = extremely gentle rise (0.10), 10 = snappy fast rise (1.0)
+    float attackFade = map((int)response, 1, 10, 10, 100) / 100.0;
     static float fadeLevel[7] = {0,0,0,0,0,0,0};
     static unsigned long peakTimeFade[7] = {0,0,0,0,0,0,0};
 
@@ -275,13 +269,11 @@ void sevenBounceTick() {
   } else {
     // --- BOUNCE MODE ---
     static float litCount[7] = {0, 0, 0, 0, 0, 0, 0};
-    static unsigned long peakTimeBounce[7] = {0, 0, 0, 0, 0, 0, 0};
-    
     float decayResponse = constrain(currentVar3, 1, 10);
-    // 1 = floaty decay (0.95 multiplier), 10 = snappy decay (0.50 multiplier)
-    float smoothingFactor = map((int)decayResponse, 1, 10, 95, 50) / 100.0;
-    // 1 = floaty attack (0.3), 100 = snappy attack (1.0) -> Faster rise!
-    float attackFactor = map((int)response, 1, 100, 30, 100) / 100.0;
+    // 1 = super floaty (0.98), 10 = fast drop (0.85)
+    float smoothingFactor = map((int)decayResponse, 1, 10, 98, 85) / 100.0;
+    // 1 = extremely gentle rise (0.10), 10 = snappy fast rise (1.0)
+    float attackFactor = map((int)response, 1, 10, 10, 100) / 100.0;
 
     float tLits[7] = {0,0,0,0,0,0,0};
 
@@ -295,13 +287,9 @@ void sevenBounceTick() {
       tLits[i] = targetLit;
 
       if (targetLit > litCount[i]) {
-        litCount[i] += (targetLit - litCount[i]) * attackFactor; // Smooth Attack
-        peakTimeBounce[i] = millis(); // Hold peak to prevent shivering
+        litCount[i] = targetLit; // Original behavior: instant jump to peak
       } else {
-        // Peak hold for 80ms on micro-drops prevents the 1-frame flutter
-        if (millis() - peakTimeBounce[i] > 80) {
-          litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
-        }
+        litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
       }
 
       int start  = (i * sectionlength) + i;
@@ -314,18 +302,6 @@ void sevenBounceTick() {
       for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
         leds[j] = CRGB(0, 0, 0);
       }
-    }
-
-    if (shouldLog) {
-      Serial.print(F("[DEBUG_BOUNCE] Sens:"));
-      Serial.print(sensitivity);
-      Serial.print(F(" | Raw Bands: "));
-      for(int i=0; i<7; i++) { Serial.print(band[i]); Serial.print(F(",")); }
-      Serial.print(F(" | Targets: "));
-      for(int i=0; i<7; i++) { Serial.print(tLits[i], 1); Serial.print(F(",")); }
-      Serial.print(F(" | Lits: "));
-      for(int i=0; i<7; i++) { Serial.print(litCount[i], 1); Serial.print(F(",")); }
-      Serial.println();
     }
 
     // White separators between sections
@@ -587,13 +563,14 @@ void threeBounceTick() {
   int sectionlength = NUM_LEDS / 3;
 
   float decayResponse = constrain(currentVar3, 1, 10);
-  // WIDENED: 1 = ultra-floaty decay (0.98), 10 = snappy decay (0.70)
-  float fadeKeep = map((int)decayResponse, 1, 10, 98, 70) / 100.0;
-  // WIDENED: 1 = ultra-floaty decay (0.98), 10 = snappy decay (0.50)
-  float smoothingFactor = map((int)decayResponse, 1, 10, 98, 50) / 100.0;
+  // Three Bounce segments are longer (~100 LEDs), so they need slightly higher retention math to drop at the same physical speed as Seven Bounce
+  // 1 = ultra floaty (0.99), 10 = fast drop (0.88)
+  float fadeKeep = map((int)decayResponse, 1, 10, 99, 88) / 100.0;
+  float smoothingFactor = map((int)decayResponse, 1, 10, 99, 88) / 100.0;
 
-  float attackFade = map((int)currentVar2, 1, 100, 40, 100) / 100.0;
-  float attackFactor = map((int)currentVar2, 1, 100, 30, 100) / 100.0;
+  // 1 = extremely gentle rise (0.10), 10 = snappy fast rise (1.0)
+  float attackFade = map(constrain(currentVar2, 1, 10), 1, 10, 10, 100) / 100.0;
+  float attackFactor = map(constrain(currentVar2, 1, 10), 1, 10, 10, 100) / 100.0;
   // Explicitly boost Band 4 logic slightly before weighted sections
   float b4 = band[4] * 1.25;
 
@@ -612,10 +589,6 @@ void threeBounceTick() {
   }
 
   float weightedBands[3] = { wBand0, wBand1, wBand2 };
-
-  static int debugCounter = 0;
-  bool shouldLog = (debugCounter % 5 == 0);
-  debugCounter++;
 
   if (currentVar1 == 1) {
     // --- FADE MODE ---
@@ -662,7 +635,6 @@ void threeBounceTick() {
   } else {
     // --- BOUNCE MODE ---
     static float litCount[3] = {0, 0, 0};
-    static unsigned long peakTimeBounce[3] = {0, 0, 0};
 
     float tLits[3] = {0,0,0};
 
@@ -680,12 +652,9 @@ void threeBounceTick() {
       tLits[i] = targetLit;
 
       if (targetLit > litCount[i]) {
-        litCount[i] += (targetLit - litCount[i]) * attackFactor;
-        peakTimeBounce[i] = millis();
+        litCount[i] = targetLit; // Original behavior: instant jump to peak
       } else {
-        if (millis() - peakTimeBounce[i] > 80) {
-          litCount[i] = litCount[i] * smoothingFactor;
-        }
+        litCount[i] = litCount[i] * smoothingFactor;
       }
 
       int start  = (i * sectionlength);
@@ -705,16 +674,6 @@ void threeBounceTick() {
       for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
         leds[j] = CRGB(0, 0, 0);
       }
-    }
-
-    if (shouldLog) {
-      Serial.print(F("[DEBUG_3BOUNCE] Sens:"));
-      Serial.print(sensitivity);
-      Serial.print(F(" | wBands: "));
-      for(int i=0; i<3; i++) { Serial.print(weightedBands[i], 1); Serial.print(F(",")); }
-      Serial.print(F(" | targets: "));
-      for(int i=0; i<3; i++) { Serial.print(tLits[i], 1); Serial.print(F(",")); }
-      Serial.println();
     }
 
     // White separators between sections
