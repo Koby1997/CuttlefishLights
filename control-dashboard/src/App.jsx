@@ -222,6 +222,7 @@ function App() {
 
   const [activeMode, setActiveMode] = useState("OFF"); // What is running on the device
   const [selectedMode, setSelectedMode] = useState(modes[0].id); // What is being viewed on UI
+  const [rainbowEggEnabled, setRainbowEggEnabled] = useState(true); // Toggle for Logo easter egg
 
   // Temporary states for the controls
   const [tempSpeed, setTempSpeed] = useState(50); // 1-100
@@ -428,14 +429,37 @@ function App() {
       {/* SIDEBAR */}
       <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col z-20 shadow-2xl">
 
-        {/* Header */}
         <div className="p-6 pb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-900/20">
-              <LayoutDashboard className="text-white" size={20} />
-            </div>
-            <h1 className="text-xl font-black tracking-tight text-white">
-              Cuttlefish<span className="text-orange-400">Ctrl</span>
+          <div 
+            className="flex items-center gap-0 mb-2 cursor-pointer" 
+            onClick={() => setRainbowEggEnabled(!rainbowEggEnabled)}
+            title="Toggle Rainbow Easter Egg"
+          >
+            <style>{`
+              @keyframes rainbow-loop {
+                0% { filter: hue-rotate(0deg); }
+                100% { filter: hue-rotate(360deg); }
+              }
+            `}</style>
+            <div
+              className={`w-20 h-20 -ml-4 drop-shadow-md shrink-0 -mr-4 ${(activeMode === "RAINBOW" && rainbowEggEnabled) ? "bg-red-500" : "bg-orange-400"}`}
+              style={{
+                maskImage: 'url(/logo_transparent.png)',
+                WebkitMaskImage: 'url(/logo_transparent.png)',
+                maskSize: 'contain',
+                WebkitMaskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                WebkitMaskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                WebkitMaskPosition: 'center',
+                animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none'
+              }}
+            />
+            <h1 className="text-3xl font-black tracking-tight text-white mb-1">
+              Cuttlefish<span 
+                className={(activeMode === "RAINBOW" && rainbowEggEnabled) ? "text-red-500" : "text-orange-400"}
+                style={{ animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none' }}
+              >Ctrl</span>
             </h1>
           </div>
         </div>
