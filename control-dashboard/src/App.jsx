@@ -265,8 +265,8 @@ function App() {
         setTempSpeed(50); // N/A
         setDirection(1); // N/A
         setTempVar1(0); // Style: Bounce
-        setTempVar2(8); // Attack: 8 (Snappy default)
-        setTempVar3(5); // Decay: 5 (Standard default)
+        setTempVar2(2); // Attack: 2 (Snappy default)
+        setTempVar3(2); // Decay: 2 (Standard default)
         break;
       case "THREEBOUNCE":
         setTempSpeed(50); // N/A
@@ -274,7 +274,7 @@ function App() {
         setTempVar1(0); // Style: Bounce
         setTempVar2(2); // Attack
         setTempVar3(2); // Decay
-        setTempVar4(0); // Processing: Blend
+        setTempVar4(1); // Processing: Strict
         setSection1Color("#ff0000"); // Red Default
         setSection2Color("#00ff00"); // Green Default
         setSection3Color("#ff00d2"); // Pink Default

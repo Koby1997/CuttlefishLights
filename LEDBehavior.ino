@@ -270,10 +270,10 @@ void sevenBounceTick() {
     // --- BOUNCE MODE ---
     static float litCount[7] = {0, 0, 0, 0, 0, 0, 0};
     float decayResponse = constrain(currentVar3, 1, 10);
-    // 1 = super floaty (0.98), 10 = fast drop (0.85)
-    float smoothingFactor = map((int)decayResponse, 1, 10, 98, 85) / 100.0;
-    // 1 = extremely gentle rise (0.10), 10 = snappy fast rise (1.0)
-    float attackFactor = map((int)response, 1, 10, 10, 100) / 100.0;
+    // 1 = extremely floaty (0.98), 10 = faster drop (0.85)
+    float smoothingFactor = map(decayResponse, 1, 10, 980, 850) / 1000.0;
+    // 1 = soft attack (0.10), 10 = snappy fast rise (0.50) - Same as Mega Bounce
+    float attackFactor = map(response, 1, 10, 10, 50) / 100.0;
 
     float tLits[7] = {0,0,0,0,0,0,0};
 
@@ -287,10 +287,11 @@ void sevenBounceTick() {
       tLits[i] = targetLit;
 
       if (targetLit > litCount[i]) {
-        litCount[i] = targetLit; // Original behavior: instant jump to peak
+        litCount[i] += (targetLit - litCount[i]) * attackFactor; // High-res smooth attack 
       } else {
-        litCount[i] = litCount[i] * smoothingFactor; // Exponential Decay
+        litCount[i] = (litCount[i] * smoothingFactor) - 0.3; // Gravity drop to prevent float stutter
       }
+      if (litCount[i] < 0) litCount[i] = 0;
 
       int start  = (i * sectionlength) + i;
       int end    = ((i + 1) * sectionlength) + i - 1;
@@ -563,14 +564,13 @@ void threeBounceTick() {
   int sectionlength = NUM_LEDS / 3;
 
   float decayResponse = constrain(currentVar3, 1, 10);
-  // Three Bounce segments are longer (~100 LEDs), so they need slightly higher retention math to drop at the same physical speed as Seven Bounce
-  // 1 = ultra floaty (0.99), 10 = fast drop (0.88)
-  float fadeKeep = map((int)decayResponse, 1, 10, 99, 88) / 100.0;
-  float smoothingFactor = map((int)decayResponse, 1, 10, 99, 88) / 100.0;
+  // Three Bounce segments are longer (~100 LEDs), so they need slightly higher retention math
+  float fadeKeep = map(decayResponse, 1, 10, 990, 880) / 1000.0;
+  float smoothingFactor = map(decayResponse, 1, 10, 990, 880) / 1000.0;
 
-  // 1 = extremely gentle rise (0.10), 10 = snappy fast rise (1.0)
-  float attackFade = map(constrain(currentVar2, 1, 10), 1, 10, 10, 100) / 100.0;
-  float attackFactor = map(constrain(currentVar2, 1, 10), 1, 10, 10, 100) / 100.0;
+  // 1 = soft attack (0.10), 10 = snappy fast rise (0.50)
+  float attackFade = map(constrain(currentVar2, 1, 10), 1, 10, 10, 50) / 100.0;
+  float attackFactor = map(constrain(currentVar2, 1, 10), 1, 10, 10, 50) / 100.0;
   // Explicitly boost Band 4 logic slightly before weighted sections
   float b4 = band[4] * 1.25;
 
@@ -652,10 +652,11 @@ void threeBounceTick() {
       tLits[i] = targetLit;
 
       if (targetLit > litCount[i]) {
-        litCount[i] = targetLit; // Original behavior: instant jump to peak
+        litCount[i] += (targetLit - litCount[i]) * attackFactor;
       } else {
-        litCount[i] = litCount[i] * smoothingFactor;
+        litCount[i] = (litCount[i] * smoothingFactor) - 0.4;
       }
+      if (litCount[i] < 0) litCount[i] = 0;
 
       int start  = (i * sectionlength);
       int end    = start + sectionlength - 1;
