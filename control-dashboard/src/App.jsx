@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { serialService } from './services/SerialService';
 import SortVisualizer from './components/SortVisualizer';
+import InfoPage from './components/InfoPage';
 import {
   Zap, Power, Activity, Disc, AlignJustify,
   Palette, Music, Waves, Wind, ArrowRightLeft, Sun,
   LayoutDashboard, Settings, ChevronRight, Hammer,
   FastForward, Ruler, Blend, Paintbrush, Rocket, ChartColumn, Rainbow, Eclipse,
-  AlignEndHorizontal
+  AlignEndHorizontal, BookOpen
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -223,6 +224,7 @@ function App() {
   const [activeMode, setActiveMode] = useState("OFF"); // What is running on the device
   const [selectedMode, setSelectedMode] = useState(modes[0].id); // What is being viewed on UI
   const [rainbowEggEnabled, setRainbowEggEnabled] = useState(true); // Toggle for Logo easter egg
+  const [showInfoPage, setShowInfoPage] = useState(false); // Toggle the documentation view
 
   // Temporary states for the controls
   const [tempSpeed, setTempSpeed] = useState(50); // 1-100
@@ -507,7 +509,7 @@ function App() {
                     return (
                       <button
                         key={mode.id}
-                        onClick={() => handleModeSelect(mode.id)}
+                        onClick={() => { handleModeSelect(mode.id); setShowInfoPage(false); }}
                         className={clsx(
                           "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
                           isSelected
@@ -539,19 +541,35 @@ function App() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-zinc-800 text-center">
-          <div className="text-[10px] text-zinc-600 font-mono">
+        <div className="p-4 border-t border-zinc-800 flex flex-col gap-3 z-10 pb-6">
+          <button 
+            onClick={() => setShowInfoPage(true)}
+            className={clsx(
+              "w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all border shadow-md",
+              showInfoPage
+                ? "bg-orange-500 text-white border-orange-400 shadow-orange-900/20"
+                : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
+            )}
+          >
+            <BookOpen size={16} /> Documentation
+          </button>
+          
+          <div className="text-[10px] text-zinc-600 font-mono text-center">
             {connected ? "LINK ESTABLISHED" : "WAITING FOR CONNECTION"}
           </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 bg-zinc-950 overflow-y-auto relative">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-zinc-900 to-transparent pointer-events-none" />
+      <main className="flex-1 bg-zinc-950 overflow-y-auto relative flex flex-col scroller-hide">
+        {showInfoPage ? (
+          <InfoPage />
+        ) : (
+          <>
+            {/* Background decorative elements */}
+            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-zinc-900 to-transparent pointer-events-none" />
 
-        <div className="max-w-4xl mx-auto p-12 relative z-10">
+            <div className="max-w-4xl mx-auto p-12 relative z-10 w-full">
 
           {/* Header Section */}
           <header className="mb-12">
@@ -1080,7 +1098,9 @@ function App() {
           {/* Spacer for bottom bar */}
           <div className="h-32"></div>
 
-        </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   )
