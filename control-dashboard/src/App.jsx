@@ -469,6 +469,8 @@ function App() {
       {/* Custom Titlebar for Electron */}
       <div className="h-8 bg-zinc-950 z-50 flex justify-between items-center shrink-0 w-full" style={{ WebkitAppRegion: 'drag' }}>
         <div className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+          <img src="./logo_transparent.png" className="w-4 h-4 object-contain opacity-80" alt="Logo" />
+          <span>Cuttlefish Lights</span>
         </div>
         <div className="flex h-full" style={{ WebkitAppRegion: 'no-drag' }}>
           <button onClick={() => window.electronAPI?.windowMinimize()} className="h-full px-4 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
@@ -542,8 +544,8 @@ function App() {
             <div
               className={`w-20 h-20 -ml-4 drop-shadow-md shrink-0 -mr-4 ${(activeMode === "RAINBOW" && rainbowEggEnabled) ? "bg-red-500" : "bg-orange-400"}`}
               style={{
-                maskImage: 'url(/logo_transparent.png)',
-                WebkitMaskImage: 'url(/logo_transparent.png)',
+                maskImage: 'url(./logo_transparent.png)',
+                WebkitMaskImage: 'url(./logo_transparent.png)',
                 maskSize: 'contain',
                 WebkitMaskSize: 'contain',
                 maskRepeat: 'no-repeat',
