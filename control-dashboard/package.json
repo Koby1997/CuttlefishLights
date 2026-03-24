@@ -1,16 +1,25 @@
 {
-  "name": "control-dashboard",
+  "name": "cuttlefish-lights",
+  "productName": "Cuttlefish Lights",
+  "description": "Desktop control dashboard for Cuttlefish Lights.",
+  "author": "Koby1997",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron": "wait-on tcp:5173 && electron .",
+    "electron:dev": "concurrently -k \"npm run dev\" \"npm run electron\"",
+    "pack": "vite build && electron-builder --dir",
+    "dist": "vite build && electron-builder"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "electron-updater": "^6.8.3",
     "framer-motion": "^12.34.0",
     "lucide-react": "^0.576.0",
     "react": "^19.2.0",
@@ -23,12 +32,46 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.24",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.koby1997.cuttlefishlights",
+    "productName": "Cuttlefish Lights",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "public/logo.png",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Koby1997",
+        "repo": "CuttlefishLights"
+      }
+    ]
   }
 }

@@ -226,6 +226,11 @@ function App() {
   const [rainbowEggEnabled, setRainbowEggEnabled] = useState(true); // Toggle for Logo easter egg
   const [showInfoPage, setShowInfoPage] = useState(false); // Toggle the documentation view
 
+  // Electron Serial Port UI States
+  const [availablePorts, setAvailablePorts] = useState([]);
+  const [isPortSelectionOpen, setIsPortSelectionOpen] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState(""); // Auto-Updater status text
+
   // Temporary states for the controls
   const [tempSpeed, setTempSpeed] = useState(50); // 1-100
   const [direction, setDirection] = useState(1); // 1 = Forward, 0 = Backward
@@ -242,6 +247,23 @@ function App() {
   useEffect(() => {
     // Force the aesthetic defaults for the initially selected mode on page load
     handleModeSelect(modes[0].id);
+
+    // Set up Electron listeners
+    if (window.electronAPI) {
+      if (window.electronAPI.onUpdateStatus) {
+        window.electronAPI.onUpdateStatus((status) => {
+          setUpdateStatus(status);
+          if (!status.includes("Downloading") && !status.includes("Restarting")) {
+            setTimeout(() => setUpdateStatus(""), 5000);
+          }
+        });
+      }
+
+      window.electronAPI.onSerialPortsAvailable((ports) => {
+        setAvailablePorts(ports);
+        setIsPortSelectionOpen(true);
+      });
+    }
   }, []);
 
   const handleModeSelect = (modeId) => {
@@ -425,8 +447,82 @@ function App() {
 
   const currentMode = modes.find(m => m.id === selectedMode) || modes[0];
 
+  const handleSelectPort = (portId) => {
+    if (window.electronAPI) {
+      window.electronAPI.selectSerialPort(portId);
+    }
+    setIsPortSelectionOpen(false);
+    setAvailablePorts([]);
+  };
+
+  const handleCancelPortSelection = () => {
+    if (window.electronAPI) {
+      window.electronAPI.cancelSerialPort();
+    }
+    setIsPortSelectionOpen(false);
+    setAvailablePorts([]);
+  };
+
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-200 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen bg-zinc-950 text-zinc-200 font-sans overflow-hidden">
+      
+      {/* Custom Titlebar for Electron */}
+      <div className="h-8 bg-zinc-950 z-50 flex justify-between items-center shrink-0 w-full" style={{ WebkitAppRegion: 'drag' }}>
+        <div className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+        </div>
+        <div className="flex h-full" style={{ WebkitAppRegion: 'no-drag' }}>
+          <button onClick={() => window.electronAPI?.windowMinimize()} className="h-full px-4 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="5" width="10" height="1" fill="currentColor"/></svg>
+          </button>
+          <button onClick={() => window.electronAPI?.windowMaximize()} className="h-full px-4 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
+          </button>
+          <button onClick={() => window.electronAPI?.windowClose()} className="h-full px-4 hover:bg-red-500 text-zinc-400 hover:text-white transition-colors">
+            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 2.5 l7 7 m-7 0 l7 -7" stroke="currentColor" strokeWidth="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+
+      {/* SERIAL PORT SELECTION MODAL */}
+      {isPortSelectionOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-2">Select Serial Port</h3>
+            <p className="text-zinc-400 text-sm mb-6">
+              Choose the COM port your device is connected to.
+            </p>
+            
+            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2">
+              {availablePorts.length === 0 ? (
+                <div className="text-zinc-500 text-center py-4 text-sm font-mono">No ports found</div>
+              ) : (
+                availablePorts.map(port => (
+                  <button
+                    key={port.portId}
+                    onClick={() => handleSelectPort(port.portId)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-800 hover:border-orange-500/50 transition-all text-left group"
+                  >
+                    <div>
+                      <div className="font-bold text-zinc-200">{port.displayName || port.portName || "Unknown Device"}</div>
+                      <div className="text-xs text-zinc-500 font-mono mt-1">ID: {port.portId} {port.vendorId ? `| Vendor: ${port.vendorId}` : ''}</div>
+                    </div>
+                    <ChevronRight size={16} className="text-zinc-600 group-hover:text-orange-500" />
+                  </button>
+                ))
+              )}
+            </div>
+            
+            <button
+              onClick={handleCancelPortSelection}
+              className="w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all border bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* SIDEBAR */}
       <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col z-20 shadow-2xl">
@@ -542,18 +638,32 @@ function App() {
 
         {/* Footer */}
         <div className="p-4 border-t border-zinc-800 flex flex-col gap-3 z-10 pb-6">
-          <button 
-            onClick={() => setShowInfoPage(true)}
-            className={clsx(
-              "w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all border shadow-md",
-              showInfoPage
-                ? "bg-orange-500 text-white border-orange-400 shadow-orange-900/20"
-                : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
-            )}
-          >
-            <BookOpen size={16} /> Documentation
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowInfoPage(true)}
+              className={clsx(
+                "flex-1 flex items-center justify-center gap-1 py-3 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all border shadow-md",
+                showInfoPage
+                  ? "bg-orange-500 text-white border-orange-400 shadow-orange-900/20"
+                  : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
+              )}
+            >
+              <BookOpen size={14} /> Docs
+            </button>
+            <button 
+              onClick={() => window.electronAPI?.checkForUpdates()}
+              className="flex-1 flex items-center justify-center py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all border shadow-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
+            >
+              Update
+            </button>
+          </div>
           
+          {updateStatus && (
+            <div className="text-[10px] text-orange-400 font-mono text-center px-2">
+              {updateStatus}
+            </div>
+          )}
+
           <div className="text-[10px] text-zinc-600 font-mono text-center">
             {connected ? "LINK ESTABLISHED" : "WAITING FOR CONNECTION"}
           </div>
@@ -1102,6 +1212,7 @@ function App() {
           </>
         )}
       </main>
+      </div>
     </div>
   )
 }

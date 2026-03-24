@@ -675,7 +675,7 @@ void threeBounceTick() {
       for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
         leds[j] = CRGB(0, 0, 0);
       }
-    }
+Koby     }
 
     // White separators between sections
     for (int i = 1; i < 3; i++) {
