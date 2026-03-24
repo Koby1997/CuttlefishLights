@@ -115,7 +115,7 @@ autoUpdater.on('update-not-available', (info) => {
   sendStatusToWindow('Currently running the latest version.');
 });
 autoUpdater.on('error', (err) => {
-  console.error("AutoUpdater Error:", err);
+  mainWindow?.webContents.executeJavaScript(`console.error("AutoUpdater backend error:", \`${err.stack || err.message}\`)`);
   sendStatusToWindow('Error while checking.');
 });
 autoUpdater.on('download-progress', (progressObj) => {
