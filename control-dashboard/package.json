@@ -60,6 +60,10 @@
       "icon": "public/logo.png",
       "target": "nsis"
     },
+    "mac": {
+      "icon": "public/logo.png",
+      "target": ["dmg", "zip"]
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
