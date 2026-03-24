@@ -1,9 +1,4 @@
-/*
- * So this is like an LED graphic. The higher the band, the more lights get lit.
- * If you need less lights lit, it tries to slow that down by turning off one
- * light at a time. Can use a delay in the main loop to slow it down more.
- * The delay helps it flow more smoothly, not fast and frantic.
- */
+// LED Graphic Helper
 void bounce(int start, int end, int lastToLight, int pick)
 {
     int alreadyLit = 0;
@@ -28,12 +23,7 @@ void bounce(int start, int end, int lastToLight, int pick)
 }
 
 
-/*
- * This uses a potentiometer to change the time it takes to add a new light.
- * The middle pin of the potentiometer is connected to A2, which is lightDelay.
- * Hooked the potentiometer to the arduino 5V. My readings went from 0 - 1000. 
- * The Delay() function is read in ms so keep that in mind.
- */
+// Hardware analog speed reader
 int getDelay()
 {
     int newDelay;
@@ -47,10 +37,6 @@ int getDelay()
     return newDelay;
 }
 
-// ... (Rest of file logic is safe as long as explicit delays are replaced)
-
-// NOTE: bounce() and logic functions are fine.
-
 void daysUntilGraduation(int daysLeft)
 { 
   // ... implementation ...
@@ -60,9 +46,6 @@ void daysUntilGraduation(int daysLeft)
 
 
 
-/*
- * finds which band is the highest
- */
 int highestBand()
 {
     int highest = 0;
@@ -75,13 +58,6 @@ int highestBand()
 }
 
 
-/*
- * Just sees if the band given is higher than the sensitivity
- */
-/*
- * Smarter hit detection: Compares a band against its OWN moving average
- * plus a global sensitivity baseline override.
- */
 bool isHit(int b)
 {
     // A hit occurs if the band sharply spikes above its recent history (1.5x its EMA)
@@ -108,9 +84,6 @@ bool isLightHit(int b)
 }
 
 
-/*
- * Simple switch-case statement to pic different colors for different behaviors
- */
 CRGB lightSwitch(int pick)//name for the lols
 {
     switch (pick)
@@ -157,9 +130,6 @@ CRGB lightSwitch(int pick)//name for the lols
 }
 
 
-/*
- * This moves the lights either from Front to Back, or Back to Front.
- */
 void moveLights(bool forward)
 {
     if(forward == true)
@@ -181,14 +151,6 @@ void moveLights(bool forward)
 }
 
 
-/*
- * This reads the bands from the Spectrum Shield.
- * Changing the strobe changes what band the Spectrum shield will read from.
- * This is why we do the for loop to read all of the bands.
- * Each band also has a left and right side of the band, 
- * so we read both and then compare.
- * The highest gets put into our band[] that we will base the lights off of. 
- */
 void readSpectrum()
 {
     int totalAmp = 0;
@@ -239,36 +201,20 @@ void readSpectrum()
     {
         totalAmp += band[i];
         
-        // Update per-band EMA (20% new, 80% old)
-        // Helps smooth out individual band histories for smarter hit detection
         bandEma[i] = ((long)band[i] * 20L + bandEma[i] * 80L) / 100L;
     }
 
-    // EMA Optimization: replaces [20] int array and 50-iteration loop.
-    // Smoothing factor sets how fast it adapts. New = 10% new + 90% old.
-    // Explicitly cast to (long) and use 'L' literals because UNO uses 16-bit ints,
-    // and totalAmp*100 easily overflows 32,767, crushing sensitivity to 0.
     emaAmplitude = ((long)totalAmp * 10L + emaAmplitude * 90L) / 100L;
 
     setSensitivity();
 }
 
 
-/*
- * Sensitivity uses an Exponential Moving Average of total amplitude across all 7 bands.
- * We multiply by 2 (or divide by 3.5 depending on math) to make sensitivity a little higher
- * than average so specific actions trigger on hard hits, not average noise.
- * Original math: (sum of 50 totalAmps / 350) * 2
- * Which simplifies to: (average totalAmp / 7) * 2 = average totalAmp * (2/7) = average totalAmp * 0.28
- */
 void setSensitivity()
 {
     // Make sensitivity ~28% of the EMA total amplitude to match original behavior
     sensitivity = (emaAmplitude * 2) / 7; 
     
-    // Add a strict noise floor minimum. 
-    // When music is paused, raw MSGEQ7 noise float can plummet sensitivity to near 0,
-    // which causes division-by-tiny-number blowouts, rendering the strip fully lit on pure static.
     if (sensitivity < 60) {
         sensitivity = 60;
     }

@@ -1,17 +1,17 @@
 #include <FastLED.h>
 #include <SoftwareSerial.h>
 
-#define NUM_LEDS 300 // DIAGNOSTIC TEST: Reduced from 300 to 10 to minimize interrupt blocking time
+#define NUM_LEDS 300
 #define DATA_PIN 6
 #define LED_TYPE WS2812B
 #define DEFAULT_BRIGHTNESS 60
 
 CRGB leds[NUM_LEDS];
-uint8_t colors[NUM_LEDS]; // Memory Isolation Test: Commented out to save 300 bytes
+uint8_t colors[NUM_LEDS];
 
-CRGB bassColor = CRGB(0,0,0); //used for some behaviors that use random colors
-long emaAmplitude = 0;    // Optimization: Replaces recentValues[20] array (Saves 40 bytes)
-long bandEma[7] = {0,0,0,0,0,0,0}; // Per-band moving average for smarter hit detection
+CRGB bassColor = CRGB(0,0,0);
+long emaAmplitude = 0;
+long bandEma[7] = {0,0,0,0,0,0,0};
 long sensitivity;
 bool aboveSensitivity;
 
@@ -48,16 +48,13 @@ enum BehaviorMode {
 
 BehaviorMode currentMode = RAINBOW; // Default behavior
 
-// Notice: Rainbow handles speed inversely inside its own function tick, 
-// using the raw 1-100 slider value rather than the inverted delay.
-int currentSpeed = 15; // Raw UI speed slider value
-
-int currentBrightness = 128; // 50%
+int currentSpeed = 15;
+int currentBrightness = 128;
 int currentDirection = 1;
-int currentVar1 = 20; // Density
-int currentVar2 = 50; // Generic Variable 2
-int currentVar3 = 0;  // Generic Variable 3 (Used for B in RGB)
-int currentVar4 = 0;  // Generic Variable 4 (Sub-Toggle / Strict Mode)
+int currentVar1 = 20;
+int currentVar2 = 50;
+int currentVar3 = 0;
+int currentVar4 = 0;
 int currentR = 255;
 int currentG = 255;
 int currentB = 255;
@@ -129,19 +126,16 @@ void loop() {
   handleSerial();
 
   // 2. Run Current Behavior
-  // using millis() for non-blocking updates inside these functions
   switch (currentMode) {
     case OFF:
       fill_solid(leds, NUM_LEDS, CRGB::Black);
       safeShow();
-      safeDelay(50); // Refresh at 20fps to ensure state but mostly listen
+      safeDelay(50);
       break;
     case SOLID_COLOR:
-      // Simple static assignment, doing it once or repeatedly is fine (repeatedly uses power but ensures state)
-       // Optimization: only set if changed, but for now simple is robust
       fill_solid(leds, NUM_LEDS, CRGB(currentR, currentG, currentB));
       safeShow();
-      safeDelay(50); // Refresh at 20fps to ensure state but mostly listen
+      safeDelay(50);
       break;
     case RAINBOW:
        rainbowTick(currentDirection, currentSpeed);
@@ -239,10 +233,7 @@ void handleSerial() {
 }
 
 void parseCommand(char* command) {
-  // Serial.print(F("DEBUG_RX: '")); Serial.print(command); Serial.println(F("'"));
-
   if (strncmp(command, "SET:", 4) != 0) {
-      // Serial.println(F("DEBUG_ERR: No SET: prefix"));
       return; 
   }
   
@@ -268,7 +259,7 @@ void parseCommand(char* command) {
               else if (t == 4) currentVar1 = val;
               else if (t == 5) currentVar2 = val;
               else if (t == 6) currentVar3 = val;
-              else if (t == 7) currentVar4 = val; // NEW: Added Var4 integration
+              else if (t == 7) currentVar4 = val;
               else if (t == 8) currentR = val;
               else if (t == 9) currentG = val;
               else if (t == 10) currentB = val;
@@ -290,11 +281,8 @@ void parseCommand(char* command) {
   }
 
   if (strlen(modeStr) == 0) {
-      // Serial.println(F("DEBUG_ERR: Missing core args"));
       return; 
   }
-
-  // Serial.print(F("DEBUG_MODE: ")); Serial.println(modeStr);
 
   if (strcmp(modeStr, "OFF") == 0) currentMode = OFF;
   else if (strcmp(modeStr, "RAINBOW") == 0) currentMode = RAINBOW;
@@ -312,11 +300,6 @@ void parseCommand(char* command) {
   else if (strcmp(modeStr, "SORT") == 0) currentMode = SORT;
   else if (strcmp(modeStr, "PAINTBRUSH") == 0) currentMode = PAINTBRUSH;
   else if (strcmp(modeStr, "MEGABOUNCE") == 0) currentMode = MEGA_BOUNCE;
-  else {
-      // Serial.println(F("DEBUG_ERR: Mode not matched!"));
-  }
-  
-  // Serial.println(F("DEBUG_OK: Mode changed"));
     
   Serial.println(F("ACK")); // Keep ACK so React dashboard keeps sending slider changes seamlessly
 }

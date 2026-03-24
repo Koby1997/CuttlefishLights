@@ -12,17 +12,7 @@ void rainbowTick(bool forward, int speed) {
     initialHue -= inc;
   }
   
-  // The UI slider sends 1-50.
-  // Instead of an integer step per LED (which limits how wide the gradient can be),
-  // we calculate the TOTAL hue spread across the entire strip.
-  // Slider = 1: total spread = 15 hue units (super wide, almost solid color) 
-  // Slider = 50: total spread = 750 hue units (~3 full rainbow wraps)
-  // Slider = 100: total spread = 1500 hue units (~6 full rainbow wraps, extremely tight)
   uint16_t totalSpread = currentVar1 * 15;
-  
-  // Calculate fractional hue step per LED in 8.8 fixed-point format.
-  // We MUST cast totalSpread to uint32_t before shifting, otherwise the 16-bit 
-  // AVR microcontroller overflows the math during intermediate calculation!
   uint16_t hueStep88 = ((uint32_t)totalSpread << 8) / NUM_LEDS;
   uint16_t currentHue88 = initialHue << 8;
   
@@ -45,10 +35,6 @@ void switchOnBeatTick() {
   static int currentFade = 60; 
   
   const unsigned long MIN_LATCH_MS = 200;
-  
-  // By removing highestBand() == 0, we allow bass to trigger even if cymbals/high-hats 
-  // are technically louder in that exact millisecond. isHit(0) now intelligently 
-  // checks against the bass band's own moving average.
   bool hitHigh = isHit(0);
   bool hitLow = !isHit(0);
   
@@ -126,12 +112,9 @@ void snakeTick(bool forward, int speed) {
   // A true "Snake" that slithers around the strip, leaving a trail
   static int head = 0;
   
-  // The UI length slider (1-100) dictates the physical length of the snake!
-  // Slider 1 (Left/Shorter) = 2 pixels. Slider 100 (Right/Longer) = Half strip.
   int snakeLength = map(currentVar1, 1, 100, 2, NUM_LEDS / 2);
-  if (snakeLength <= 0) snakeLength = 10; // Fallback
+  if (snakeLength <= 0) snakeLength = 10;
   
-  // Turn off the tail (the LED at the very end of the snake)
   int tail = forward ? (head - snakeLength) : (head + snakeLength);
   
   // Handle wraparound for the tail
@@ -502,13 +485,9 @@ void megaBounceTick(int dirState, int speed) {
 
   // To avoid getting completely stuck, ensure a minimum drop
   if (targetCount > smoothedCount) {
-    // Attack phase: Use VAR3 to dictate upward travel
     smoothedCount += (targetCount - smoothedCount) * attackFactor;
   } else {
-    // Decay phase: Use VAR4 mapped factor to pull down
-    smoothedCount = (smoothedCount * decayFactor);
-    // Apply a minimum physical gravity drop so it eventually hits 0
-    smoothedCount -= 0.5;
+    smoothedCount = (smoothedCount * decayFactor) - 0.5;
   }
   if (smoothedCount < 0) smoothedCount = 0;
   
@@ -673,11 +652,10 @@ void threeBounceTick() {
         leds[j] = baseColor;
       }
       for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
-        leds[j] = CRGB(0, 0, 0);
+        leds[j] = CRGB::Black;
       }
-Koby     }
+    }
 
-    // White separators between sections
     for (int i = 1; i < 3; i++) {
       int idx = (((i * sectionlength) + i) - 1);
       if (idx < NUM_LEDS) leds[idx] = CRGB(100, 100, 100);

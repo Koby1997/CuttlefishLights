@@ -13,8 +13,8 @@ This project is an audio-reactive LED controller system.
 ---
 
 ## 2. Directory Structure
-*   **`/` (Root)**: Arduino Firmware files (`.ino`).
-    *   `CuttlefishLights.ino`: Main entry point. Handles Serial I/O, State Machine, and Command Parsing.
+*   **`/ArduinoCore`**: Arduino Firmware files (`.ino`).
+    *   `ArduinoCore.ino`: Main entry point. Handles Serial I/O, State Machine, and Command Parsing.
     *   `LEDBehavior.ino`: Implementation of light patterns (Rainbow, SwitchOnBeat, etc.). **Must be non-blocking**.
     *   `tools.ino`: Helper functions (`isHit`, `safeDelay`, `readSpectrum`).
 *   **`/control-dashboard`**: The React Frontend.
@@ -49,7 +49,7 @@ The system uses a **Unified Command Protocol** to ensure state synchronization.
 
 ---
 
-## 4. Firmware Details (`CuttlefishLights.ino`)
+## 4. Firmware Details (`ArduinoCore.ino`)
 ### Non-Blocking Core
 Old versions used `delay()`, which made the Arduino "deaf" to serial commands during animations.
 *   **`safeDelay(ms)`**: Custom function that loops `handleSerial()` while waiting.
@@ -78,7 +78,7 @@ Old versions used `delay()`, which made the Arduino "deaf" to serial commands du
 ---
 
 ## 6. How to Run
-1.  **Hardware**: Flash `CuttlefishLights.ino` to Arduino.
+1.  **Hardware**: Flash `ArduinoCore/ArduinoCore.ino` to Arduino.
 2.  **Frontend**:
     ```bash
     cd control-dashboard
