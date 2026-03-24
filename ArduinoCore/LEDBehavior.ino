@@ -203,8 +203,13 @@ void paintbrushTick(bool forward, int speed) {
   safeDelay(speed);
 }
 
-void sevenBounceTick() {
+void sevenBounceTick(int dirState) {
   readSpectrum();
+  bool reverseOrder = false;
+  if (dirState >= 10) {
+      reverseOrder = true;
+      dirState -= 10;
+  }
   int sectionlength = NUM_LEDS / 7;
 
   // Response (1-10) -> 1=Floaty, 10=Snappy
@@ -220,7 +225,8 @@ void sevenBounceTick() {
     static unsigned long peakTimeFade[7] = {0,0,0,0,0,0,0};
 
     for (int section = 0; section < 7; section++) {
-      int start = (section * sectionlength) + section;
+      int physicalSection = reverseOrder ? (6 - section) : section;
+      int start = (physicalSection * sectionlength) + physicalSection;
       int end   = start + sectionlength;
 
       float temp = 0;
@@ -276,15 +282,37 @@ void sevenBounceTick() {
       }
       if (litCount[i] < 0) litCount[i] = 0;
 
-      int start  = (i * sectionlength) + i;
-      int end    = ((i + 1) * sectionlength) + i - 1;
+      int physicalSection = reverseOrder ? (6 - i) : i;
+      int start  = (physicalSection * sectionlength) + physicalSection;
+      int end    = ((physicalSection + 1) * sectionlength) + physicalSection - 1;
       int numLit = (int)litCount[i];
 
-      for (int j = start; j < start + numLit && j <= end && j < NUM_LEDS; j++) {
-        leds[j] = lightSwitch(i);
-      }
-      for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
-        leds[j] = CRGB(0, 0, 0);
+      if (dirState == 1) { // Forward
+        for (int j = start; j < start + numLit && j <= end && j < NUM_LEDS; j++) {
+          leds[j] = lightSwitch(i);
+        }
+        for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
+          leds[j] = CRGB::Black;
+        }
+      } else if (dirState == 0) { // Backward
+        for (int j = end; j > end - numLit && j >= start; j--) {
+          if (j < NUM_LEDS) leds[j] = lightSwitch(i);
+        }
+        for (int j = start; j <= end - numLit && j <= end; j++) {
+          if (j < NUM_LEDS) leds[j] = CRGB::Black;
+        }
+      } else if (dirState == 2) { // Center-Out
+        int sectionSize = (end - start) + 1;
+        int center = start + (sectionSize / 2);
+        int halfLit = numLit / 2;
+        for (int j = start; j <= end && j < NUM_LEDS; j++) {
+          int dist = abs(j - center);
+          if (dist <= halfLit) {
+            leds[j] = lightSwitch(i);
+          } else {
+            leds[j] = CRGB::Black;
+          }
+        }
       }
     }
 
@@ -536,8 +564,13 @@ void megaBounceTick(int dirState, int speed) {
   safeDelay(speed);
 }
 
-void threeBounceTick() {
+void threeBounceTick(int dirState) {
   readSpectrum();
+  bool reverseOrder = false;
+  if (dirState >= 10) {
+      reverseOrder = true;
+      dirState -= 10;
+  }
   
   // Actually establish 3 identical 1/3 sections
   int sectionlength = NUM_LEDS / 3;
@@ -576,9 +609,10 @@ void threeBounceTick() {
 
     for (int section = 0; section < 3; section++) {
       // Safely distribute length up the strip across iterations
-      int start = (section * sectionlength);
+      int physicalSection = reverseOrder ? (2 - section) : section;
+      int start = (physicalSection * sectionlength);
       int end   = start + sectionlength;
-      if (section == 2) end = NUM_LEDS; // Ensure absolute final limit is hit perfectly
+      if (physicalSection == 2) end = NUM_LEDS; // Ensure absolute final limit is hit perfectly
 
       float temp = 0;
       if (sensitivity > 0) {
@@ -637,9 +671,10 @@ void threeBounceTick() {
       }
       if (litCount[i] < 0) litCount[i] = 0;
 
-      int start  = (i * sectionlength);
+      int physicalSection = reverseOrder ? (2 - i) : i;
+      int start  = (physicalSection * sectionlength);
       int end    = start + sectionlength - 1;
-      if (i == 2) end = NUM_LEDS - 1; // Last section snaps to the finish line
+      if (physicalSection == 2) end = NUM_LEDS - 1; // Last section snaps to the finish line
 
       int numLit = (int)litCount[i];
 
@@ -648,11 +683,32 @@ void threeBounceTick() {
       else if (i == 1) baseColor = CRGB(currentR2, currentG2, currentB2);
       else baseColor = CRGB(currentR3, currentG3, currentB3);
 
-      for (int j = start; j < start + numLit && j <= end && j < NUM_LEDS; j++) {
-        leds[j] = baseColor;
-      }
-      for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
-        leds[j] = CRGB::Black;
+      if (dirState == 1) { // Forward
+        for (int j = start; j < start + numLit && j <= end && j < NUM_LEDS; j++) {
+          leds[j] = baseColor;
+        }
+        for (int j = start + numLit; j <= end && j < NUM_LEDS; j++) {
+          leds[j] = CRGB::Black;
+        }
+      } else if (dirState == 0) { // Backward
+        for (int j = end; j > end - numLit && j >= start; j--) {
+          if (j < NUM_LEDS) leds[j] = baseColor;
+        }
+        for (int j = start; j <= end - numLit && j <= end; j++) {
+          if (j < NUM_LEDS) leds[j] = CRGB::Black;
+        }
+      } else if (dirState == 2) { // Center-Out
+        int sectionSize = (end - start) + 1;
+        int center = start + (sectionSize / 2);
+        int halfLit = numLit / 2;
+        for (int j = start; j <= end && j < NUM_LEDS; j++) {
+          int dist = abs(j - center);
+          if (dist <= halfLit) {
+            leds[j] = baseColor;
+          } else {
+            leds[j] = CRGB::Black;
+          }
+        }
       }
     }
 

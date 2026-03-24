@@ -153,10 +153,10 @@ void loop() {
        snakeTick(currentDirection, currentSpeed);
        break;
     case SEVEN_BOUNCE:
-       sevenBounceTick();
+       sevenBounceTick(currentDirection);
        break;
     case THREE_BOUNCE:
-       threeBounceTick();
+       threeBounceTick(currentDirection);
        break;
     case BASS_NEW:
        bassStartsNewColorTick(currentDirection, currentSpeed);

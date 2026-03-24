@@ -86,7 +86,8 @@ function App() {
       icon: AlignEndHorizontal,
       desc: "Bouncing balls of light that react to frequency bands. The Red section is the lower bass notes all the way up to Pink which are the high notes. Following the chart in Seven Colors.",
       hasSpeed: false,
-      hasDirection: false,
+      hasDirection: true,
+      hasReverseOrder: true,
       hasBrightness: true,
       hasSubMode: true,  // 0 = Bounce, 1 = Fade
       hasResponse: true,  // Controls Attack smoothing speed (var2)
@@ -99,7 +100,8 @@ function App() {
       icon: AlignEndHorizontal,
       desc: "Like Seven Bounce, but groups the frequencies into 3 distinct Low, Mid, and High sections. The Low section represents bands 1-3, Mid represents bands 3-5, and High represents bands 5-7.",
       hasSpeed: false,
-      hasDirection: false,
+      hasDirection: true,
+      hasReverseOrder: true,
       hasBrightness: true,
       hasSubMode: true,  // 0 = Bounce, 1 = Fade
       hasResponse: true,  // Controls Attack smoothing speed (var2)
@@ -239,6 +241,7 @@ function App() {
   const [tempVar2, setTempVar2] = useState(50); // Generic Variable 2 (e.g. Response)
   const [tempVar3, setTempVar3] = useState(0); // Generic Variable 3
   const [tempVar4, setTempVar4] = useState(0); // Generic Variable 4 (Strict Mode Toggle)
+  const [reverseOrder, setReverseOrder] = useState(0); // 0 = Normal, 1 = Reversed
   const [tempColor, setTempColor] = useState("#ffffff"); // Hex Color for Solid Color mode
   const [section1Color, setSection1Color] = useState("#ff0000"); // Red Default
   const [section2Color, setSection2Color] = useState("#00ff00"); // Green Default
@@ -292,6 +295,7 @@ function App() {
         setTempVar1(0); // Style: Bounce
         setTempVar2(2); // Attack: 2 (Snappy default)
         setTempVar3(2); // Decay: 2 (Standard default)
+        setReverseOrder(0);
         break;
       case "THREEBOUNCE":
         setTempSpeed(50); // N/A
@@ -300,6 +304,7 @@ function App() {
         setTempVar2(2); // Attack
         setTempVar3(2); // Decay
         setTempVar4(1); // Processing: Strict
+        setReverseOrder(0);
         setSection1Color("#ff0000"); // Red Default
         setSection2Color("#00ff00"); // Green Default
         setSection3Color("#ff00d2"); // Pink Default
@@ -395,7 +400,10 @@ function App() {
     }
 
     // Direction: Default to 1 if not applicable
-    const dirVal = mode.hasDirection ? direction : 1;
+    let dirVal = mode.hasDirection ? direction : 1;
+    if (mode.hasReverseOrder && reverseOrder === 1) {
+        dirVal += 10;
+    }
 
     // Brightness: Default to 60 or tempBrightness
     const brightVal = tempBrightness;
@@ -961,11 +969,50 @@ function App() {
               </div>
             )}
 
+            {/* Reverse Order Toggle */}
+            {currentMode.hasReverseOrder && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                <div className="mb-6">
+                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                    <ArrowRightLeft size={16} className="text-orange-500" /> Band Order
+                  </label>
+                  <p className="text-sm text-zinc-500 leading-relaxed font-medium">
+                    Flips the physical layout of the frequency bands across the strip.
+                  </p>
+                </div>
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                  <button
+                    onClick={() => setReverseOrder(0)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                      reverseOrder === 0
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Normal
+                  </button>
+                  <button
+                    onClick={() => setReverseOrder(1)}
+                    className={clsx(
+                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                      reverseOrder === 1
+                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                    )}
+                  >
+                    Flipped
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Direction Control - Relocated to span full width above Color Styles */}
             {currentMode.hasDirection && (
               <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
                 <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <ArrowRightLeft size={16} className="text-orange-500" /> Direction
+                  <ArrowRightLeft size={16} className="text-orange-500" />
+                  {currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE" ? "Direction of Bounce" : "Direction"}
                 </label>
                 <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
                   <button
@@ -990,7 +1037,7 @@ function App() {
                   >
                     Backward
                   </button>
-                  {currentMode.id === "MEGABOUNCE" && (
+                  {(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") && (
                     <button
                       onClick={() => setDirection(2)}
                       className={clsx(
