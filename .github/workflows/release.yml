@@ -1,0 +1,37 @@
+name: Build and Publish Releases
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers the workflow when you push a new tag, e.g., v1.0.1
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    permissions:
+      contents: write # Crucial: Allows the action to upload binaries to the Release page!
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'control-dashboard/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: ./control-dashboard
+        run: npm ci
+
+      - name: Build and Publish Electron App
+        working-directory: ./control-dashboard
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist -- --publish always
