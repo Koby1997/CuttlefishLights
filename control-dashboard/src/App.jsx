@@ -654,9 +654,9 @@ function App() {
             </button>
             <button 
               onClick={() => window.electronAPI?.checkForUpdates()}
-              className="flex-1 flex items-center justify-center py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all border shadow-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
+              className="flex-[1.5] flex items-center justify-center py-3 rounded-xl font-bold text-[9px] uppercase tracking-widest transition-all border shadow-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
             >
-              Update
+              Check for Update
             </button>
           </div>
           

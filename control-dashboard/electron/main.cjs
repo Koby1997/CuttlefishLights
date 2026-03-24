@@ -27,6 +27,14 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
+  // Add keyboard shortcut for DevTools (Ctrl+Shift+I)
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+      mainWindow.webContents.toggleDevTools();
+      event.preventDefault();
+    }
+  });
+
   // Web Serial API permission handler
   mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
     // Implement cancellation handler
@@ -101,22 +109,23 @@ autoUpdater.on('checking-for-update', () => {
   sendStatusToWindow('Checking for updates...');
 });
 autoUpdater.on('update-available', (info) => {
-  sendStatusToWindow(`Update v${info.version} found! Downloading...`);
+  sendStatusToWindow(`New version found! Downloading...`);
 });
 autoUpdater.on('update-not-available', (info) => {
-  sendStatusToWindow('You are on the latest version.');
+  sendStatusToWindow('Currently running the latest version.');
 });
 autoUpdater.on('error', (err) => {
-  sendStatusToWindow('Error: ' + err.message);
+  console.error("AutoUpdater Error:", err);
+  sendStatusToWindow('Error while checking.');
 });
 autoUpdater.on('download-progress', (progressObj) => {
   sendStatusToWindow(`Downloading... ${Math.round(progressObj.percent)}%`);
 });
 autoUpdater.on('update-downloaded', (info) => {
-  sendStatusToWindow('Update ready! Restarting in 3 seconds...');
+  sendStatusToWindow('Restarting to update...');
   setTimeout(() => {
     autoUpdater.quitAndInstall();
-  }, 3000);
+  }, 2000);
 });
 
 ipcMain.on('check-for-updates', () => {
