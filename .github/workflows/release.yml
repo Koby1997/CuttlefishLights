@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest, ubuntu-22.04]
 
     permissions:
       contents: write # Crucial: Allows the action to upload binaries to the Release page!
@@ -29,6 +29,10 @@ jobs:
       - name: Install Dependencies
         working-directory: ./control-dashboard
         run: npm ci
+
+      - name: Install FUSE (for AppImage compatibility)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install -y libfuse2
 
       - name: Build and Publish Electron App
         working-directory: ./control-dashboard
