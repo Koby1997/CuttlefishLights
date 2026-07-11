@@ -2,7 +2,11 @@
   "name": "cuttlefish-lights",
   "productName": "Cuttlefish Lights",
   "description": "Desktop control dashboard for Cuttlefish Lights.",
-  "author": "Koby1997",
+  "author": {
+    "name": "Koby1997",
+    "email": "KobyLMiller@outlook.com"
+  },
+  "homepage": "https://github.com/Koby1997/CuttlefishLights",
   "private": true,
   "version": "1.0.6",
   "type": "module",
