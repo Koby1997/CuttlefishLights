@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpen, Zap, Activity, HardDrive, AlertTriangle, ShieldAlert, Rocket, Waves, Link2, Disc } from "lucide-react";
+import { BookOpen, Zap, Activity, HardDrive, AlertTriangle, ShieldAlert, Rocket, Waves, Link2, Disc, ArrowRightLeft } from "lucide-react";
 
 export default function InfoPage() {
   return (
@@ -195,6 +195,12 @@ export default function InfoPage() {
               <circle cx="370" cy="190" r="4" fill="#10b981" />
               <text x="430" y="182" fill="#10b981" fontSize="12" fontWeight="bold" textAnchor="middle">Data (Pin 6)</text>
 
+              {/* USB Cable (Computer -> Arduino) */}
+              <path d="M 70 250 L 70 200 L 230 200" stroke="#a855f7" strokeWidth="3" fill="none" strokeDasharray="5 4" />
+              <circle cx="70" cy="250" r="3" fill="#a855f7" />
+              <circle cx="230" cy="200" r="3" fill="#a855f7" />
+              <text x="150" y="192" fill="#a855f7" fontSize="11" fontWeight="bold" textAnchor="middle">USB (Serial)</text>
+
               {/* Audio Splitter Topology */}
 
               {/* Computer Box */}
@@ -287,6 +293,19 @@ export default function InfoPage() {
                 <h4 className="text-white font-bold mb-1">Aux Splitter & Speakers</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed mt-1">
                   To listen to your music while driving the lights, attach a <strong className="text-white">Y-Splitter Aux cable</strong> to your computer's audio output. Run one wire to your <strong className="text-blue-400">physical speakers</strong>, and the other wire directly into the <strong className="text-blue-400">MSGEQ7 INPUT audio jack</strong>. This ensures the Arduino hears the exact same uncompressed raw signal your speakers do!
+                </p>
+              </div>
+            </div>
+
+            {/* USB Serial Connection */}
+            <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="w-12 h-12 bg-purple-950/30 rounded-lg border border-purple-900/50 flex items-center justify-center shrink-0">
+                <ArrowRightLeft className="text-purple-500" size={20} />
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-1">USB Serial Communication</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed mt-1">
+                  Connect the <strong className="text-white">Arduino Uno</strong> to your computer using a standard <strong className="text-purple-400">USB cable</strong>. This powers the Arduino board and enables the React desktop app to send mode/behavior change commands via serial communication.
                 </p>
               </div>
             </div>
