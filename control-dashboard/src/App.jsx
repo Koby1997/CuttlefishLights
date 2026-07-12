@@ -402,7 +402,7 @@ function App() {
     // Direction: Default to 1 if not applicable
     let dirVal = mode.hasDirection ? direction : 1;
     if (mode.hasReverseOrder && reverseOrder === 1) {
-        dirVal += 10;
+      dirVal += 10;
     }
 
     // Brightness: Default to 60 or tempBrightness
@@ -473,7 +473,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-zinc-950 text-zinc-200 font-sans overflow-hidden">
-      
+
       {/* Custom Titlebar for Electron */}
       <div className="h-8 bg-zinc-950 z-50 flex justify-between items-center shrink-0 w-full" style={{ WebkitAppRegion: 'drag' }}>
         <div className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
@@ -482,177 +482,176 @@ function App() {
         </div>
         <div className="flex h-full" style={{ WebkitAppRegion: 'no-drag' }}>
           <button onClick={() => window.electronAPI?.windowMinimize()} className="h-full px-4 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
-            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="5" width="10" height="1" fill="currentColor"/></svg>
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="5" width="10" height="1" fill="currentColor" /></svg>
           </button>
           <button onClick={() => window.electronAPI?.windowMaximize()} className="h-full px-4 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
-            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
+            <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="1" /></svg>
           </button>
           <button onClick={() => window.electronAPI?.windowClose()} className="h-full px-4 hover:bg-red-500 text-zinc-400 hover:text-white transition-colors">
-            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 2.5 l7 7 m-7 0 l7 -7" stroke="currentColor" strokeWidth="1"/></svg>
+            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 2.5 l7 7 m-7 0 l7 -7" stroke="currentColor" strokeWidth="1" /></svg>
           </button>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
 
-      {/* SERIAL PORT SELECTION MODAL */}
-      {isPortSelectionOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-white mb-2">Select Serial Port</h3>
-            <p className="text-zinc-400 text-sm mb-6">
-              Choose the COM port your device is connected to.
-            </p>
-            
-            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2">
-              {availablePorts.length === 0 ? (
-                <div className="text-zinc-500 text-center py-4 text-sm font-mono">No ports found</div>
-              ) : (
-                availablePorts.map(port => (
-                  <button
-                    key={port.portId}
-                    onClick={() => handleSelectPort(port.portId)}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-800 hover:border-orange-500/50 transition-all text-left group"
-                  >
-                    <div>
-                      <div className="font-bold text-zinc-200">{port.displayName || port.portName || "Unknown Device"}</div>
-                      <div className="text-xs text-zinc-500 font-mono mt-1">ID: {port.portId} {port.vendorId ? `| Vendor: ${port.vendorId}` : ''}</div>
-                    </div>
-                    <ChevronRight size={16} className="text-zinc-600 group-hover:text-orange-500" />
-                  </button>
-                ))
-              )}
+        {/* SERIAL PORT SELECTION MODAL */}
+        {isPortSelectionOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 w-full max-w-md">
+              <h3 className="text-xl font-bold text-white mb-2">Select Serial Port</h3>
+              <p className="text-zinc-400 text-sm mb-6">
+                Choose the COM port your device is connected to.
+              </p>
+
+              <div className="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2">
+                {availablePorts.length === 0 ? (
+                  <div className="text-zinc-500 text-center py-4 text-sm font-mono">No ports found</div>
+                ) : (
+                  availablePorts.map(port => (
+                    <button
+                      key={port.portId}
+                      onClick={() => handleSelectPort(port.portId)}
+                      className="w-full flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-800 hover:border-orange-500/50 transition-all text-left group"
+                    >
+                      <div>
+                        <div className="font-bold text-zinc-200">{port.displayName || port.portName || "Unknown Device"}</div>
+                        <div className="text-xs text-zinc-500 font-mono mt-1">ID: {port.portId} {port.vendorId ? `| Vendor: ${port.vendorId}` : ''}</div>
+                      </div>
+                      <ChevronRight size={16} className="text-zinc-600 group-hover:text-orange-500" />
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <button
+                onClick={handleCancelPortSelection}
+                className="w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all border bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700"
+              >
+                Cancel
+              </button>
             </div>
-            
-            <button
-              onClick={handleCancelPortSelection}
-              className="w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all border bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700"
-            >
-              Cancel
-            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* SIDEBAR */}
-      <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col z-20 shadow-2xl">
+        {/* SIDEBAR */}
+        <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col z-20 shadow-2xl">
 
-        <div className="p-6 pb-4">
-          <div 
-            className="flex items-center gap-0 mb-2 cursor-pointer" 
-            onClick={() => setRainbowEggEnabled(!rainbowEggEnabled)}
-            title="Toggle Rainbow Easter Egg"
-          >
-            <style>{`
+          <div className="p-6 pb-4">
+            <div
+              className="flex items-center gap-0 mb-2 cursor-pointer"
+              onClick={() => setRainbowEggEnabled(!rainbowEggEnabled)}
+              title="Toggle Rainbow Easter Egg"
+            >
+              <style>{`
               @keyframes rainbow-loop {
                 0% { filter: hue-rotate(0deg); }
                 100% { filter: hue-rotate(360deg); }
               }
             `}</style>
-            <div
-              className={`w-20 h-20 -ml-4 drop-shadow-md shrink-0 -mr-4 ${(activeMode === "RAINBOW" && rainbowEggEnabled) ? "bg-red-500" : "bg-orange-400"}`}
-              style={{
-                maskImage: 'url(./logo_transparent.png)',
-                WebkitMaskImage: 'url(./logo_transparent.png)',
-                maskSize: 'contain',
-                WebkitMaskSize: 'contain',
-                maskRepeat: 'no-repeat',
-                WebkitMaskRepeat: 'no-repeat',
-                maskPosition: 'center',
-                WebkitMaskPosition: 'center',
-                animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none'
-              }}
-            />
-            <h1 className="text-3xl font-black tracking-tight text-white mb-1">
-              Cuttlefish<span 
-                className={(activeMode === "RAINBOW" && rainbowEggEnabled) ? "text-red-500" : "text-orange-400"}
-                style={{ animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none' }}
-              >Ctrl</span>
-            </h1>
-          </div>
-        </div>
-
-        {/* Global Controls & Connection */}
-        <div className="px-6 mb-6">
-          <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase text-zinc-500 tracking-wider">Status</span>
-              <div className={`w-2 h-2 rounded-full ${connected ? 'bg-orange-400 shadow-[0_0_8px_#fb923c]' : 'bg-red-400'}`} />
+              <div
+                className={`w-20 h-20 -ml-4 drop-shadow-md shrink-0 -mr-4 ${(activeMode === "RAINBOW" && rainbowEggEnabled) ? "bg-red-500" : "bg-orange-400"}`}
+                style={{
+                  maskImage: 'url(./logo_transparent.png)',
+                  WebkitMaskImage: 'url(./logo_transparent.png)',
+                  maskSize: 'contain',
+                  WebkitMaskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center',
+                  WebkitMaskPosition: 'center',
+                  animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none'
+                }}
+              />
+              <h1 className="text-3xl font-black tracking-tight text-white mb-1">
+                Cuttlefish<span
+                  className={(activeMode === "RAINBOW" && rainbowEggEnabled) ? "text-red-500" : "text-orange-400"}
+                  style={{ animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none' }}
+                >Ctrl</span>
+              </h1>
             </div>
-            <button
-              onClick={connected ? () => window.location.reload() : handleConnect}
-              className={clsx(
-                "w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all border",
-                connected
-                  ? "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
-                  : "bg-orange-500 text-white border-transparent hover:bg-orange-400 shadow-lg shadow-orange-900/20"
-              )}
-            >
-              {connected ? "Disconnect" : "Initialize Link"}
-            </button>
           </div>
-        </div>
 
-        {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
-          {/* Group modes by category */}
-          {["Music-Reactive", "Ambient & Flow", "Utilities"].map((category) => {
-            const categoryModes = modes.filter((m) => m.category === category);
-            if (categoryModes.length === 0) return null;
-
-            return (
-              <div key={category} className="mb-6">
-                {category !== "Music-Reactive" && <hr className="border-zinc-800/60 mb-6 mx-2" />}
-                <div className="px-2 mb-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
-                  {category}
-                </div>
-                <div className="space-y-1">
-                  {categoryModes.map((mode) => {
-                    const isSelected = selectedMode === mode.id;
-                    const isActive = activeMode === mode.id;
-                    const Icon = mode.icon;
-
-                    return (
-                      <button
-                        key={mode.id}
-                        onClick={() => { handleModeSelect(mode.id); setShowInfoPage(false); }}
-                        className={clsx(
-                          "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
-                          isSelected
-                            ? "bg-zinc-800 text-white shadow-sm border border-zinc-700/50"
-                            : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 border border-transparent"
-                        )}
-                      >
-                        {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-md shadow-[0_0_8px_#f97316]" />
-                        )}
-
-                        <Icon size={18} className={clsx(
-                          "transition-colors",
-                          isSelected ? "text-orange-400" : "text-zinc-500 group-hover:text-zinc-400"
-                        )} />
-
-                        <span className="flex-1 text-left">{mode.title}</span>
-
-                        {isActive && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316]" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Global Controls & Connection */}
+          <div className="px-6 mb-6">
+            <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold uppercase text-zinc-500 tracking-wider">Status</span>
+                <div className={`w-2 h-2 rounded-full ${connected ? 'bg-orange-400 shadow-[0_0_8px_#fb923c]' : 'bg-red-400'}`} />
               </div>
-            );
-          })}
-        </div>
+              <button
+                onClick={connected ? () => window.location.reload() : handleConnect}
+                className={clsx(
+                  "w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all border",
+                  connected
+                    ? "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
+                    : "bg-orange-500 text-white border-transparent hover:bg-orange-400 shadow-lg shadow-orange-900/20"
+                )}
+              >
+                {connected ? "Disconnect" : "Initialize Link"}
+              </button>
+            </div>
+          </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-zinc-800 flex flex-col gap-3 z-10 pb-6">
-          <div className="flex gap-2">
-            <button 
+          {/* Navigation List */}
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
+            {/* Group modes by category */}
+            {["Music-Reactive", "Ambient & Flow", "Utilities"].map((category) => {
+              const categoryModes = modes.filter((m) => m.category === category);
+              if (categoryModes.length === 0) return null;
+
+              return (
+                <div key={category} className="mb-6">
+                  {category !== "Music-Reactive" && <hr className="border-zinc-800/60 mb-6 mx-2" />}
+                  <div className="px-2 mb-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                    {category}
+                  </div>
+                  <div className="space-y-1">
+                    {categoryModes.map((mode) => {
+                      const isSelected = selectedMode === mode.id;
+                      const isActive = activeMode === mode.id;
+                      const Icon = mode.icon;
+
+                      return (
+                        <button
+                          key={mode.id}
+                          onClick={() => { handleModeSelect(mode.id); setShowInfoPage(false); }}
+                          className={clsx(
+                            "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all group relative",
+                            isSelected
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700/50"
+                              : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 border border-transparent"
+                          )}
+                        >
+                          {isActive && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-orange-500 rounded-r-md shadow-[0_0_8px_#f97316]" />
+                          )}
+
+                          <Icon size={18} className={clsx(
+                            "transition-colors",
+                            isSelected ? "text-orange-400" : "text-zinc-500 group-hover:text-zinc-400"
+                          )} />
+
+                          <span className="flex-1 text-left">{mode.title}</span>
+
+                          {isActive && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316]" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-zinc-800 flex flex-col gap-3 z-10 pb-6">
+            <button
               onClick={() => setShowInfoPage(true)}
               className={clsx(
-                "flex-1 flex items-center justify-center gap-1 py-3 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all border shadow-md",
+                "w-full flex items-center justify-center gap-1 py-3 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all border shadow-md",
                 showInfoPage
                   ? "bg-orange-500 text-white border-orange-400 shadow-orange-900/20"
                   : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
@@ -660,607 +659,600 @@ function App() {
             >
               <BookOpen size={14} /> Docs
             </button>
-            <button 
-              onClick={() => window.electronAPI?.checkForUpdates()}
-              className="flex-[1.5] flex items-center justify-center py-3 rounded-xl font-bold text-[9px] uppercase tracking-widest transition-all border shadow-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700"
-            >
-              Check for Update
-            </button>
-          </div>
-          
-          {updateStatus && (
-            <div className="text-[10px] text-orange-400 font-mono text-center px-2">
-              {updateStatus}
+
+            {updateStatus && (
+              <div className="text-[10px] text-orange-400 font-mono text-center px-2">
+                {updateStatus}
+              </div>
+            )}
+
+            <div className="text-[10px] text-zinc-600 font-mono text-center">
+              {connected ? "LINK ESTABLISHED" : "WAITING FOR CONNECTION"}
             </div>
-          )}
-
-          <div className="text-[10px] text-zinc-600 font-mono text-center">
-            {connected ? "LINK ESTABLISHED" : "WAITING FOR CONNECTION"}
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 bg-zinc-950 overflow-y-auto relative flex flex-col scroller-hide">
-        {showInfoPage ? (
-          <InfoPage />
-        ) : (
-          <>
-            {/* Background decorative elements */}
-            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-zinc-900 to-transparent pointer-events-none" />
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 bg-zinc-950 overflow-y-auto relative flex flex-col scroller-hide">
+          {showInfoPage ? (
+            <InfoPage />
+          ) : (
+            <>
+              {/* Background decorative elements */}
+              <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-zinc-900 to-transparent pointer-events-none" />
 
-            <div className="max-w-4xl mx-auto p-12 relative z-10 w-full">
+              <div className="max-w-4xl mx-auto p-12 relative z-10 w-full">
 
-          {/* Header Section */}
-          <header className="mb-12">
-            <div className="inline-flex items-center justify-center p-3 bg-zinc-900 rounded-2xl mb-6 shadow-xl border border-zinc-800">
-              <currentMode.icon size={32} className="text-orange-400" />
-            </div>
-            <h2 className="text-4xl font-black text-white mb-4 tracking-tight">{currentMode.title}</h2>
-            <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed">{currentMode.desc}</p>
-          </header>
-
-          {/* Controls Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-
-            {/* Speed Control */}
-            {currentMode.hasSpeed && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <FastForward size={16} className="text-orange-500" /> Speed
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {tempSpeed}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={tempSpeed}
-                  onChange={(e) => setTempSpeed(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Slow</span>
-                  <span>Fast</span>
-                </div>
-              </div>
-            )}
-
-            {/* Brightness Control */}
-            {currentMode.hasBrightness && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    <Sun size={16} className="text-orange-500" /> Brightness
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {Math.round((tempBrightness / 255) * 100)}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="255"
-                  value={tempBrightness}
-                  onChange={(e) => setTempBrightness(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Dim</span>
-                  <span>Max</span>
-                </div>
-              </div>
-            )}
-
-            {/* Density / VAR1 Control */}
-            {currentMode.hasDensity && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
-                    {currentMode.id === "SNAKE" ? (
-                      <Ruler size={16} className="text-orange-500" />
-                    ) : (
-                      <Waves size={16} className="text-orange-500" />
-                    )}
-                    {currentMode.id === "SNAKE" ? "Snake Length" : "Density"}
-                  </label>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {tempVar1}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={tempVar1}
-                  onChange={(e) => setTempVar1(parseInt(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  {currentMode.id === "SNAKE" ? (
-                    <>
-                      <span>Shorter</span>
-                      <span>Longer</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Wide</span>
-                      <span>Tight</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Sensitivity Control (VAR1) */}
-            {currentMode.hasSensitivityMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <Activity size={16} className="text-orange-500" /> Sensitivity
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
-                  <button
-                    onClick={() => setTempVar1(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      tempVar1 === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Punch (Bass)
-                  </button>
-                  <button
-                    onClick={() => setTempVar1(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      tempVar1 === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Meter (All)
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Sub-Mode Toggle (e.g. Bounce / Fade) */}
-            {currentMode.hasSubMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <Activity size={16} className="text-orange-500" /> Style
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
-                  <button
-                    onClick={() => setTempVar1(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      tempVar1 === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    {currentMode.id === "PAINTBRUSH" ? "Overwrite" : "Bounce"}
-                  </button>
-                  <button
-                    onClick={() => setTempVar1(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      tempVar1 === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    {currentMode.id === "PAINTBRUSH" ? "Black out" : "Fade"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Attack / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
-            {currentMode.hasResponse && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
-                      <ChevronRight size={16} className="text-orange-500" /> Attack
-                    </label>
-                    <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
-                      How quickly the color rises
-                    </p>
+                {/* Header Section */}
+                <header className="mb-12">
+                  <div className="inline-flex items-center justify-center p-3 bg-zinc-900 rounded-2xl mb-6 shadow-xl border border-zinc-800">
+                    <currentMode.icon size={32} className="text-orange-400" />
                   </div>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") ? "10" : "100"}
-                  value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (currentMode.id === "MEGABOUNCE") setTempVar3(val);
-                    else setTempVar2(val);
-                  }}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Slow</span>
-                  <span>Fast</span>
-                </div>
-              </div>
-            )}
+                  <h2 className="text-4xl font-black text-white mb-4 tracking-tight">{currentMode.title}</h2>
+                  <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed">{currentMode.desc}</p>
+                </header>
 
-            {/* Decay / Gravity Control */}
-            {currentMode.hasDecay && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
-                      <ChevronRight size={16} className="text-orange-500 rotate-90" /> Decay
-                    </label>
-                    <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
-                      How quickly the color falls
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
-                    {currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (currentMode.id === "MEGABOUNCE") setTempVar4(val);
-                    else setTempVar3(val);
-                  }}
-                  className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
-                />
-                <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  <span>Slow</span>
-                  <span>Fast</span>
-                </div>
-              </div>
-            )}
+                {/* Controls Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
 
-            {/* Strict Mode Toggle (VAR4) */}
-            {currentMode.hasStrictMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <div className="mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                    <Music size={16} className="text-orange-500" /> Processing
-                  </label>
-                  <p className="text-sm text-zinc-500 leading-relaxed font-medium">
-                    Not much difference between the two, but Normal blends multiple bands of frequencies where strict only takes the lowest/middle/highest frequencies.
-                  </p>
-                </div>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
-                  <button
-                    onClick={() => setTempVar4(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
-                      tempVar4 === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Blend
-                  </button>
-                  <button
-                    onClick={() => setTempVar4(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
-                      tempVar4 === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Strict
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Reverse Order Toggle */}
-            {currentMode.hasReverseOrder && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <div className="mb-6">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                    <ArrowRightLeft size={16} className="text-orange-500" /> Band Order
-                  </label>
-                  <p className="text-sm text-zinc-500 leading-relaxed font-medium">
-                    Flips the physical layout of the frequency bands across the strip.
-                  </p>
-                </div>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
-                  <button
-                    onClick={() => setReverseOrder(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
-                      reverseOrder === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Normal
-                  </button>
-                  <button
-                    onClick={() => setReverseOrder(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
-                      reverseOrder === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Flipped
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Direction Control - Relocated to span full width above Color Styles */}
-            {currentMode.hasDirection && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <ArrowRightLeft size={16} className="text-orange-500" />
-                  {currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE" ? "Direction of Bounce" : "Direction"}
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
-                  <button
-                    onClick={() => setDirection(1)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      direction === 1
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Forward
-                  </button>
-                  <button
-                    onClick={() => setDirection(0)}
-                    className={clsx(
-                      "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                      direction === 0
-                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                    )}
-                  >
-                    Backward
-                  </button>
-                  {(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") && (
-                    <button
-                      onClick={() => setDirection(2)}
-                      className={clsx(
-                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                        direction === 2
-                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                      )}
-                    >
-                      Center-Out
-                    </button>
+                  {/* Speed Control */}
+                  {currentMode.hasSpeed && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <div className="flex items-center justify-between mb-6">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                          <FastForward size={16} className="text-orange-500" /> Speed
+                        </label>
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                          {tempSpeed}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        value={tempSpeed}
+                        onChange={(e) => setTempSpeed(parseInt(e.target.value))}
+                        className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                      />
+                      <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        <span>Slow</span>
+                        <span>Fast</span>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
-            )}
 
-            {/* Style Control (VAR2) */}
-            {currentMode.hasStyleMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <Palette size={16} className="text-orange-500" /> Color Style
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
-                  {[
-                    { label: "Classic", val: 0 },
-                    { label: "Custom Solid", val: 2 },
-                    { label: "Full Spectrum", val: 3 }
-                  ].map(({ label, val }) => (
-                    <button
-                      key={val}
-                      onClick={() => setTempVar2(val)}
-                      className={clsx(
-                        "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
-                        tempVar2 === val
-                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+                  {/* Brightness Control */}
+                  {currentMode.hasBrightness && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <div className="flex items-center justify-between mb-6">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                          <Sun size={16} className="text-orange-500" /> Brightness
+                        </label>
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                          {Math.round((tempBrightness / 255) * 100)}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="255"
+                        value={tempBrightness}
+                        onChange={(e) => setTempBrightness(parseInt(e.target.value))}
+                        className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                      />
+                      <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        <span>Dim</span>
+                        <span>Max</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Density / VAR1 Control */}
+                  {currentMode.hasDensity && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <div className="flex items-center justify-between mb-6">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                          {currentMode.id === "SNAKE" ? (
+                            <Ruler size={16} className="text-orange-500" />
+                          ) : (
+                            <Waves size={16} className="text-orange-500" />
+                          )}
+                          {currentMode.id === "SNAKE" ? "Snake Length" : "Density"}
+                        </label>
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                          {tempVar1}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        value={tempVar1}
+                        onChange={(e) => setTempVar1(parseInt(e.target.value))}
+                        className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                      />
+                      <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        {currentMode.id === "SNAKE" ? (
+                          <>
+                            <span>Shorter</span>
+                            <span>Longer</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Wide</span>
+                            <span>Tight</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sensitivity Control (VAR1) */}
+                  {currentMode.hasSensitivityMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <Activity size={16} className="text-orange-500" /> Sensitivity
+                      </label>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                        <button
+                          onClick={() => setTempVar1(0)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            tempVar1 === 0
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Punch (Bass)
+                        </button>
+                        <button
+                          onClick={() => setTempVar1(1)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            tempVar1 === 1
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Meter (All)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-Mode Toggle (e.g. Bounce / Fade) */}
+                  {currentMode.hasSubMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <Activity size={16} className="text-orange-500" /> Style
+                      </label>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                        <button
+                          onClick={() => setTempVar1(0)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            tempVar1 === 0
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          {currentMode.id === "PAINTBRUSH" ? "Overwrite" : "Bounce"}
+                        </button>
+                        <button
+                          onClick={() => setTempVar1(1)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            tempVar1 === 1
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          {currentMode.id === "PAINTBRUSH" ? "Black out" : "Fade"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attack / Smoothing Control (VAR3 for MegaBounce, VAR2 for old modes) */}
+                  {currentMode.hasResponse && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                            <ChevronRight size={16} className="text-orange-500" /> Attack
+                          </label>
+                          <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                            How quickly the color rises
+                          </p>
+                        </div>
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                          {currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max={(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") ? "10" : "100"}
+                        value={currentMode.id === "MEGABOUNCE" ? tempVar3 : tempVar2}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (currentMode.id === "MEGABOUNCE") setTempVar3(val);
+                          else setTempVar2(val);
+                        }}
+                        className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                      />
+                      <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        <span>Slow</span>
+                        <span>Fast</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Decay / Gravity Control */}
+                  {currentMode.hasDecay && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                            <ChevronRight size={16} className="text-orange-500 rotate-90" /> Decay
+                          </label>
+                          <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                            How quickly the color falls
+                          </p>
+                        </div>
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                          {currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={currentMode.id === "MEGABOUNCE" ? tempVar4 : tempVar3}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (currentMode.id === "MEGABOUNCE") setTempVar4(val);
+                          else setTempVar3(val);
+                        }}
+                        className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all"
+                      />
+                      <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        <span>Slow</span>
+                        <span>Fast</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Strict Mode Toggle (VAR4) */}
+                  {currentMode.hasStrictMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <div className="mb-6">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                          <Music size={16} className="text-orange-500" /> Processing
+                        </label>
+                        <p className="text-sm text-zinc-500 leading-relaxed font-medium">
+                          Not much difference between the two, but Normal blends multiple bands of frequencies where strict only takes the lowest/middle/highest frequencies.
+                        </p>
+                      </div>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                        <button
+                          onClick={() => setTempVar4(0)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                            tempVar4 === 0
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Blend
+                        </button>
+                        <button
+                          onClick={() => setTempVar4(1)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                            tempVar4 === 1
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Strict
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reverse Order Toggle */}
+                  {currentMode.hasReverseOrder && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <div className="mb-6">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                          <ArrowRightLeft size={16} className="text-orange-500" /> Band Order
+                        </label>
+                        <p className="text-sm text-zinc-500 leading-relaxed font-medium">
+                          Flips the physical layout of the frequency bands across the strip.
+                        </p>
+                      </div>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                        <button
+                          onClick={() => setReverseOrder(0)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                            reverseOrder === 0
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Normal
+                        </button>
+                        <button
+                          onClick={() => setReverseOrder(1)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-wide",
+                            reverseOrder === 1
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Flipped
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Direction Control - Relocated to span full width above Color Styles */}
+                  {currentMode.hasDirection && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <ArrowRightLeft size={16} className="text-orange-500" />
+                        {currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE" ? "Direction of Bounce" : "Direction"}
+                      </label>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                        <button
+                          onClick={() => setDirection(1)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            direction === 1
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Forward
+                        </button>
+                        <button
+                          onClick={() => setDirection(0)}
+                          className={clsx(
+                            "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                            direction === 0
+                              ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          )}
+                        >
+                          Backward
+                        </button>
+                        {(currentMode.id === "MEGABOUNCE" || currentMode.id === "BOUNCE" || currentMode.id === "THREEBOUNCE") && (
+                          <button
+                            onClick={() => setDirection(2)}
+                            className={clsx(
+                              "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                              direction === 2
+                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                            )}
+                          >
+                            Center-Out
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Style Control (VAR2) */}
+                  {currentMode.hasStyleMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <Palette size={16} className="text-orange-500" /> Color Style
+                      </label>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                        {[
+                          { label: "Classic", val: 0 },
+                          { label: "Custom Solid", val: 2 },
+                          { label: "Full Spectrum", val: 3 }
+                        ].map(({ label, val }) => (
+                          <button
+                            key={val}
+                            onClick={() => setTempVar2(val)}
+                            className={clsx(
+                              "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
+                              tempVar2 === val
+                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
 
-            {/* Snake Color Style Selector (VAR2) */}
-            {currentMode.hasSnakeMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <div className="mb-4">
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
-                    <Palette size={16} className="text-orange-500" /> Color Style
-                  </label>
-                  <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
-                    Changes how the snake determines its body color
-                  </p>
-                </div>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
-                  {[
-                    { label: "Audio", val: 0 },
-                    { label: "Rainbow", val: 1 },
-                    { label: "Locked Bow", val: 2 },
-                    { label: "Random", val: 3 }
-                  ].map(({ label, val }) => (
-                    <button
-                      key={val}
-                      onClick={() => setTempVar2(val)}
-                      className={clsx(
-                        "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
-                        tempVar2 === val
-                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+                  {/* Snake Color Style Selector (VAR2) */}
+                  {currentMode.hasSnakeMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <div className="mb-4">
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-1">
+                          <Palette size={16} className="text-orange-500" /> Color Style
+                        </label>
+                        <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                          Changes how the snake determines its body color
+                        </p>
+                      </div>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                        {[
+                          { label: "Audio", val: 0 },
+                          { label: "Rainbow", val: 1 },
+                          { label: "Locked Bow", val: 2 },
+                          { label: "Random", val: 3 }
+                        ].map(({ label, val }) => (
+                          <button
+                            key={val}
+                            onClick={() => setTempVar2(val)}
+                            className={clsx(
+                              "flex-1 py-3 rounded-lg text-[10px] md:text-xs font-bold transition-all uppercase tracking-wide",
+                              tempVar2 === val
+                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Sort Algorithm Selector (VAR1) */}
-            {currentMode.hasSortMode && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <AlignJustify size={16} className="text-orange-500" /> Algorithm
-                </label>
-                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
-                  {[
-                    { label: "Bubble", val: 0 },
-                    { label: "Selection", val: 1 },
-                    { label: "Insertion", val: 2 },
-                    { label: "Heap", val: 3 },
-                  ].map(({ label, val }) => (
-                    <button
-                      key={val}
-                      onClick={() => setTempVar1(val)}
-                      className={clsx(
-                        "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
-                        tempVar1 === val
-                          ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
-                  Direction sets ascending ↑ or descending ↓
-                </p>
+                  {/* Sort Algorithm Selector (VAR1) */}
+                  {currentMode.hasSortMode && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <AlignJustify size={16} className="text-orange-500" /> Algorithm
+                      </label>
+                      <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 gap-1">
+                        {[
+                          { label: "Bubble", val: 0 },
+                          { label: "Selection", val: 1 },
+                          { label: "Insertion", val: 2 },
+                          { label: "Heap", val: 3 },
+                        ].map(({ label, val }) => (
+                          <button
+                            key={val}
+                            onClick={() => setTempVar1(val)}
+                            className={clsx(
+                              "flex-1 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide",
+                              tempVar1 === val
+                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                        Direction sets ascending ↑ or descending ↓
+                      </p>
 
-                {/* Visualizer Injection */}
-                <SortVisualizer algorithm={tempVar1} direction={direction} speed={tempSpeed} />
+                      {/* Visualizer Injection */}
+                      <SortVisualizer algorithm={tempVar1} direction={direction} speed={tempSpeed} />
 
-              </div>
-            )}
+                    </div>
+                  )}
 
-            {/* Section Colors for Three Bounce */}
-            {currentMode.hasSectionColors && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
-                  <Palette size={16} className="text-orange-500" /> Section Colors
-                </label>
+                  {/* Section Colors for Three Bounce */}
+                  {currentMode.hasSectionColors && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl md:col-span-2">
+                      <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-6">
+                        <Palette size={16} className="text-orange-500" /> Section Colors
+                      </label>
 
-                <div className="space-y-4">
-                  {[
-                    { label: "Bass Section", state: section1Color, setter: setSection1Color },
-                    { label: "Mid Section", state: section2Color, setter: setSection2Color },
-                    { label: "High Section", state: section3Color, setter: setSection3Color }
-                  ].map((section, sIdx) => (
-                    <div key={sIdx} className="mb-4 last:mb-0 flex items-center justify-between bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                      <div className="space-y-4">
+                        {[
+                          { label: "Bass Section", state: section1Color, setter: setSection1Color },
+                          { label: "Mid Section", state: section2Color, setter: setSection2Color },
+                          { label: "High Section", state: section3Color, setter: setSection3Color }
+                        ].map((section, sIdx) => (
+                          <div key={sIdx} className="mb-4 last:mb-0 flex items-center justify-between bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                            <div>
+                              <span className="text-sm font-bold text-zinc-300 block">{section.label}</span>
+                            </div>
+                            <div className="relative group cursor-pointer">
+                              <input
+                                type="color"
+                                value={section.state}
+                                onChange={(e) => section.setter(e.target.value)}
+                                className="w-10 h-10 p-0 border-0 rounded-full overflow-hidden cursor-pointer"
+                              />
+                              <div className="absolute inset-0 ring-2 ring-zinc-700/50 rounded-full pointer-events-none group-hover:ring-orange-500/50 transition-all"></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Solid Color Picker */}
+                  {(currentMode.hasColorPicker || (currentMode.id === "MEGABOUNCE" && tempVar2 === 2)) && (
+                    <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
                       <div>
-                        <span className="text-sm font-bold text-zinc-300 block">{section.label}</span>
+                        <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
+                          <Palette size={16} className="text-orange-500" /> Strip Color
+                        </label>
+                        <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+                          Select the exact RGB to paint the entire strip
+                        </p>
                       </div>
                       <div className="relative group cursor-pointer">
                         <input
                           type="color"
-                          value={section.state}
-                          onChange={(e) => section.setter(e.target.value)}
-                          className="w-10 h-10 p-0 border-0 rounded-full overflow-hidden cursor-pointer"
+                          value={tempColor}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setTempColor(newColor);
+
+                            const hex = newColor.replace('#', '');
+                            const r = parseInt(hex.substring(0, 2), 16);
+                            const g = parseInt(hex.substring(2, 4), 16);
+                            const b = parseInt(hex.substring(4, 6), 16);
+
+                            // Instantly activate and blast color to the strip
+                            if (currentMode.id === "MEGABOUNCE") {
+                              // MegaBounce requires a blazing fast 1ms loop delay for physics precision
+                              serialService.sendConfig(currentMode.id, 1, direction, tempBrightness, tempVar1, tempVar2, tempVar3, tempVar4, r, g, b);
+                            } else {
+                              serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b, 0, r, g, b);
+                            }
+
+                            if (activeMode !== currentMode.id) {
+                              setActiveMode(currentMode.id);
+                            }
+                          }}
+                          className="w-16 h-16 rounded-xl cursor-pointer bg-transparent border-0 p-0 shadow-lg shadow-black/40 overflow-hidden"
                         />
-                        <div className="absolute inset-0 ring-2 ring-zinc-700/50 rounded-full pointer-events-none group-hover:ring-orange-500/50 transition-all"></div>
+                        <div className="absolute inset-0 rounded-xl ring-2 ring-white/10 group-hover:ring-orange-500/50 transition-all pointer-events-none" />
                       </div>
                     </div>
-                  ))}
+                  )}
+
                 </div>
-              </div>
-            )}
 
-            {/* Solid Color Picker */}
-            {(currentMode.hasColorPicker || (currentMode.id === "MEGABOUNCE" && tempVar2 === 2)) && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                    <Palette size={16} className="text-orange-500" /> Strip Color
-                  </label>
-                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
-                    Select the exact RGB to paint the entire strip
-                  </p>
+                {/* Action Bar */}
+                <div className="fixed bottom-0 right-0 p-8 w-[calc(100%-18rem)] bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-1">Active Output</div>
+                    <div className="text-white font-medium flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${activeMode === currentMode.id ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-zinc-600'}`}></span>
+                      {activeMode === currentMode.id ? "Currently Running" : "Not Active"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleApplyMode(currentMode.id)}
+                    className={clsx(
+                      "px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl flex items-center gap-3",
+                      "bg-orange-500 text-white hover:bg-orange-400 hover:scale-[1.02] active:scale-[0.98] shadow-orange-900/20"
+                    )}
+                  >
+                    {activeMode === currentMode.id ? "Update Pattern" : "Activate Pattern"}
+                    <Zap size={18} />
+                  </button>
                 </div>
-                <div className="relative group cursor-pointer">
-                  <input
-                    type="color"
-                    value={tempColor}
-                    onChange={(e) => {
-                      const newColor = e.target.value;
-                      setTempColor(newColor);
 
-                      const hex = newColor.replace('#', '');
-                      const r = parseInt(hex.substring(0, 2), 16);
-                      const g = parseInt(hex.substring(2, 4), 16);
-                      const b = parseInt(hex.substring(4, 6), 16);
+                {/* Spacer for bottom bar */}
+                <div className="h-32"></div>
 
-                      // Instantly activate and blast color to the strip
-                      if (currentMode.id === "MEGABOUNCE") {
-                        // MegaBounce requires a blazing fast 1ms loop delay for physics precision
-                        serialService.sendConfig(currentMode.id, 1, direction, tempBrightness, tempVar1, tempVar2, tempVar3, tempVar4, r, g, b);
-                      } else {
-                        serialService.sendConfig(currentMode.id, 50, 1, tempBrightness, r, g, b, 0, r, g, b);
-                      }
-
-                      if (activeMode !== currentMode.id) {
-                        setActiveMode(currentMode.id);
-                      }
-                    }}
-                    className="w-16 h-16 rounded-xl cursor-pointer bg-transparent border-0 p-0 shadow-lg shadow-black/40 overflow-hidden"
-                  />
-                  <div className="absolute inset-0 rounded-xl ring-2 ring-white/10 group-hover:ring-orange-500/50 transition-all pointer-events-none" />
-                </div>
               </div>
-            )}
-
-          </div>
-
-          {/* Action Bar */}
-          <div className="fixed bottom-0 right-0 p-8 w-[calc(100%-18rem)] bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800 flex items-center justify-between">
-            <div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-1">Active Output</div>
-              <div className="text-white font-medium flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${activeMode === currentMode.id ? 'bg-orange-500 shadow-[0_0_8px_#f97316]' : 'bg-zinc-600'}`}></span>
-                {activeMode === currentMode.id ? "Currently Running" : "Not Active"}
-              </div>
-            </div>
-            <button
-              onClick={() => handleApplyMode(currentMode.id)}
-              className={clsx(
-                "px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl flex items-center gap-3",
-                "bg-orange-500 text-white hover:bg-orange-400 hover:scale-[1.02] active:scale-[0.98] shadow-orange-900/20"
-              )}
-            >
-              {activeMode === currentMode.id ? "Update Pattern" : "Activate Pattern"}
-              <Zap size={18} />
-            </button>
-          </div>
-
-          {/* Spacer for bottom bar */}
-          <div className="h-32"></div>
-
-            </div>
-          </>
-        )}
-      </main>
+            </>
+          )}
+        </main>
       </div>
     </div>
   )
