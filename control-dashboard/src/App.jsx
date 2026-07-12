@@ -10,6 +10,7 @@ import {
   AlignEndHorizontal, BookOpen
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { version } from '../package.json';
 
 function App() {
   const [connected, setConnected] = useState(false);
@@ -563,12 +564,15 @@ function App() {
                   animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none'
                 }}
               />
-              <h1 className="text-3xl font-black tracking-tight text-white mb-1">
-                Cuttlefish<span
-                  className={(activeMode === "RAINBOW" && rainbowEggEnabled) ? "text-red-500" : "text-orange-400"}
-                  style={{ animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none' }}
-                >Ctrl</span>
-              </h1>
+              <div className="flex flex-col justify-center">
+                <h1 className="text-3xl font-black tracking-tight text-white leading-tight">
+                  Cuttlefish<span
+                    className={(activeMode === "RAINBOW" && rainbowEggEnabled) ? "text-red-500" : "text-orange-400"}
+                    style={{ animation: (activeMode === "RAINBOW" && rainbowEggEnabled) ? 'rainbow-loop 3s linear infinite' : 'none' }}
+                  >Ctrl</span>
+                </h1>
+                <span className="text-[10px] font-mono text-zinc-500 tracking-widest mt-0.5">v{version}</span>
+              </div>
             </div>
           </div>
 
